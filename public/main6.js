@@ -6,7 +6,6 @@ BGCOLOR = '#ddc492';
 STONE_SIZE = 7;
 STONE_START = 26;
 STONE_SPACE = 11;
-MAX_STONES = 11;
 TRI_START = 25;
 TRI_SIZE_X = 9;
 TRI_SIZE_Y = 5;
@@ -151,14 +150,10 @@ class View {
       return st;
     } catch (move) {
       if (move.active) {
-	var newstate = st.step(move);
-	if (newstate != "illegal")
-	  return newstate;
-	else
-	  return st;
+	return move;
       }
       else {
-	return st;
+	return null;
       }
     }
   }
@@ -294,32 +289,50 @@ function do_ai(state, strat) {
   }
 }
 
+function poll() {
+  $.ajax({url:'/poll', timeout: 5000})
+    .done(x => {
+      view.set_state(_.extend(new State, x));
+      view.render(d);
+      poll();
+    })
+    .complete((jqxhr, status) => {
+      console.log('complete', status);
+      if (status == 'timeout') {
+	poll();
+      }
+    });
+}
+
 function go() {
   fullscreen();
 
   view = new View(new State())
-  view.render(d);
+  $.ajax({url:'/state'}).done(x => {
+    view.set_state(_.extend(new State, x));
+    view.render(d);
+    poll();
+  });
 
   $(c).on('mousedown', e => {
-    view.set_state(view.do_mouse(e));
-    view.render(d);
+    var move = view.do_mouse(e);
+    if (move != null) {
+      $.ajax({url:'/move', data: {move: JSON.stringify(move)}});
+      console.log(move);
+    }
     e.preventDefault();
   });
 
-  $('body').on('keydown', e => {
-    if (e.keyCode == 32) {
-      view.set_state(do_ai(view.state, new Simple()));
-      state.render(d);
-      e.preventDefault();
-    }
-    if (e.keyCode == 72) { // 'h'
-      view.set_state(do_ai(view.state, new Lookahead({width: 1})));
-      view.render(d);
-      e.preventDefault();
-    }
-  });
-}
-
-function vswap(v) {
-  return {x: v.y, y: v.x};
+  // $('body').on('keydown', e => {
+  //   if (e.keyCode == 32) {
+  //     view.set_state(do_ai(view.state, new Simple()));
+  //     view.render(d);
+  //     e.preventDefault();
+  //   }
+  //   if (e.keyCode == 72) { // 'h'
+  //     view.set_state(do_ai(view.state, new Lookahead({width: 1})));
+  //     view.render(d);
+  //     e.preventDefault();
+  //   }
+  // });
 }

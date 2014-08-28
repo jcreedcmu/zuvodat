@@ -1,3 +1,19 @@
+var _ = require('underscore');
+
+MAX_STONES = 11;
+
+function vplus(a, b) {
+  return {x: a.x + b.x, y: a.y + b.y};
+}
+
+function vscale(s, b) {
+  return {x: s * b.x, y: s * b.y};
+}
+
+function vswap(v) {
+  return {x: v.y, y: v.x};
+}
+
 class State {
   constructor() {
     // player ::= 0 blue or 1 red
@@ -17,16 +33,16 @@ class State {
 
   // actual game logic here
   step(move) {
-    if (move == Infinity)
-      throw "what";
+    if (move == null) {
+      return {err: 'move is null'};
+    }
     if (this.victory) {
-      console.log('game ended');
-      return "illegal";
+//      return {err: 'game over'};
+      return new State();
     }
     var player = move.player;
     if (player != this.cur_player) {
-      console.log('not current player');
-      return "illegal";
+      return {err: 'not current player'};
     }
     var side = move.side;
     var ix = move.ix;
@@ -61,8 +77,7 @@ class State {
       return ns;
     }
     else {
-      console.log('bad action or invariant violation');
-      return "illegal";
+      return {err: 'bad action or invariant violation'};
     }
   }
 
@@ -73,4 +88,4 @@ class State {
   }
 }
 
-exports = State;
+module.exports = State;
