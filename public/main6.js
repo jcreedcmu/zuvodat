@@ -289,19 +289,17 @@ function do_ai(state, strat) {
   }
 }
 
-function poll() {
-  $.ajax({url:'/poll', timeout: 5000})
-    .done(x => {
-      view.set_state(_.extend(new State, x));
-      view.render(d);
-      poll();
-    })
-    .complete((jqxhr, status) => {
-      console.log('complete', status);
-      if (status == 'timeout') {
-	poll();
-      }
-    });
+function open_ws(view) {
+  var host = location.origin.replace(/^http/, 'ws');
+  var ws = new WebSocket(host);
+  ws.addEventListener('message', function (event) {
+    view.set_state(_.extend(new State(), JSON.parse(event.data)));
+    view.render(d);
+  });
+  ws.addEventListener('close', function () {
+    console.log('closing, trying to reopen');
+    setTimeout(function () { open_ws(view); }, 1000);
+  });
 }
 
 function go() {
@@ -309,13 +307,7 @@ function go() {
 
   view = new View(new State());
 
-  var host = location.origin.replace(/^http/, 'ws')
-  var ws = new WebSocket(host);
-  ws.onmessage = function (event) {
-    view.set_state(_.extend(new State(), JSON.parse(event.data)));
-    view.render(d);
-  };
-
+  open_ws(view);
   $(c).on('mousedown', e => {
     var move = view.do_mouse(e);
     if (move != null) {
