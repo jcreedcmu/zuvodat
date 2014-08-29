@@ -1,23 +1,25 @@
-var express = require('express')
-var app = express();
+var WebSocketServer = require("ws").Server
+var http = require("http")
+var express = require("express")
+var app = express()
+
+
 var State = require('./public/state5.js');
 var _ = require('underscore');
 
-app.set('port', (process.env.PORT || 5000));
-app.use(express.static(__dirname + '/public'));
+//app.set('port', (process.env.PORT || 5000));
+//app.use(express.static(__dirname + '/public'));
 
+var port = process.env.PORT || 5000
+app.use(express.static(__dirname + "/public"))
+var server = http.createServer(app)
+server.listen(port)
+
+
+console.log("http server listening on %d", port)
 
 var state = new State();
 var qu = [];
-
-app.get('/state', function(req, resp) {
-  resp.json(state);
-});
-
-app.get('/poll', function(req, resp) {
-  qu.push(resp);
-});
-
 
 app.get('/move', function(req, resp) {
   if (req.query.move == null)
@@ -56,15 +58,25 @@ app.get('/move', function(req, resp) {
     state = step_res;
     // broadcast
     resp.json("ok");
-    _.each(qu, function(poll_resp) {
-      poll_resp.json(state);
+    _.each(conns, function(ws) {
+      ws.send(JSON.stringify(state));
     });
-    qu = [];
   }
 });
 
 
+var wss = new WebSocketServer({server: server})
+console.log("websocket server created")
 
-app.listen(app.get('port'), function() {
-  console.log("Node app is running at localhost:" + app.get('port'))
-})
+var conns = {};
+var conn_counter = 0;
+wss.on("connection", function(ws) {
+  ws.conn_id = conn_counter++;
+  conns[ws.conn_id] = ws;
+  console.log("opening connection #" + ws.conn_id);
+  ws.send(JSON.stringify(state));
+  ws.on("close", function() {
+    console.log("closing connection #" + this.conn_id);
+    delete conns[this.conn_id];
+  });
+});

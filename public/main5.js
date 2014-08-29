@@ -307,12 +307,14 @@ function poll() {
 function go() {
   fullscreen();
 
-  view = new View(new State())
-  $.ajax({url:'/state'}).done(function(x ) {
-    view.set_state(_.extend(new State, x));
+  view = new View(new State());
+
+  var host = location.origin.replace(/^http/, 'ws')
+  var ws = new WebSocket(host);
+  ws.onmessage = function (event) {
+    view.set_state(_.extend(new State(), JSON.parse(event.data)));
     view.render(d);
-    poll();
-  });
+  };
 
   $(c).on('mousedown', function(e ) {
     var move = view.do_mouse(e);

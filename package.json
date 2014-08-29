@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "underscore": "*",
+    "ws": "0.4.x",
     "express": "^4.4.5",
     "es6-transpiler": "^0.7.13-5",
     "glob": "^3.2.9",
