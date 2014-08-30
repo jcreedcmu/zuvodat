@@ -1,4 +1,4 @@
-var DP$0 = Object.defineProperty;SCALE = 4;
+var DP$0 = Object.defineProperty;SCALE = 3;
 BOARD_SIZE = 169;
 AVATAR_OFF = 151;
 AVATAR_SIZE = 17;
