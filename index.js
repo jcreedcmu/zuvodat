@@ -11,6 +11,16 @@ var _ = require('underscore');
 //app.use(express.static(__dirname + '/public'));
 
 var port = process.env.PORT || 5000
+
+var table = [];
+for (var i = 0; i < 26; i++) {
+  table.push(String.fromCharCode(97 + i));
+}
+for (var i = 0; i < 10; i++) {
+  table.push(String.fromCharCode(48 + i));
+}
+
+
 app.use("/b/:board", express.static(__dirname + "/public"));
 app.use("/b/:board/id.js", function(req, res) {
   var board_id = req.param('board');
@@ -18,6 +28,18 @@ app.use("/b/:board/id.js", function(req, res) {
     res.send('board_id = "' + board_id + '";');
   else
     res.status(400).send("bad board id " + board_id);
+});
+
+app.use("/", function(req, res, next) {
+  if (req.path != '/') {
+    next();
+    return;
+  }
+  var s = "";
+  _.times(8, function() {
+    s += table[Math.floor(table.length * Math.random())];
+  });
+  res.redirect("/b/" + s);
 });
 
 var server = http.createServer(app)
