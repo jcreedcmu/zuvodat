@@ -11,17 +11,31 @@ var _ = require('underscore');
 //app.use(express.static(__dirname + '/public'));
 
 var port = process.env.PORT || 5000
-app.use(express.static(__dirname + "/public"))
+app.use("/b/:board", express.static(__dirname + "/public"));
+app.use("/b/:board/id.js", function(req, res) {
+  var board_id = req.param('board');
+  if (board_id.match(/^[a-z0-9]{8}$/))
+    res.send('board_id = "' + board_id + '";');
+  else
+    res.status(400).send("bad board id " + board_id);
+});
+
 var server = http.createServer(app)
 server.listen(port)
 
 
 console.log("http server listening on %d", port)
 
-var state = new State();
+var boards = {};
 var qu = [];
 
-app.get('/move', function(req, resp) {
+app.get('/b/:board/move', function(req, resp) {
+  var board_id = req.param('board');
+  if (!board_id.match(/^[a-z0-9]{8}$/)) {
+    res.status(400).send("bad board id " + board_id);
+  }
+  var board = boards[board_id];
+
   if (req.query.move == null)
     throw 'no move';
   var move;
@@ -36,7 +50,7 @@ app.get('/move', function(req, resp) {
   }
 
   try {
-    step_res = state.step(move);
+    step_res = board.state.step(move);
   }
   catch (e) {
     resp.status(400).json({err: 'state evaluation failure', move: req.query.move, exn: e.toString()});
@@ -53,13 +67,12 @@ app.get('/move', function(req, resp) {
     resp.status(400).json(step_res);
     return;
   }
-
   else {
-    state = step_res;
+    board.state = step_res;
     // broadcast
     resp.json("ok");
-    _.each(conns, function(ws) {
-      ws.send(JSON.stringify(state));
+    _.each(board.conns, function(ws) {
+      ws.send(JSON.stringify(board.state));
     });
   }
 });
@@ -68,15 +81,29 @@ app.get('/move', function(req, resp) {
 var wss = new WebSocketServer({server: server})
 console.log("websocket server created")
 
-var conns = {};
-var conn_counter = 0;
 wss.on("connection", function(ws) {
-  ws.conn_id = conn_counter++;
-  conns[ws.conn_id] = ws;
+//  require('fs').writeFileSync('/tmp/foo.txt', JSON.stringify(ws, null, 4));
+  var board_id = ws.upgradeReq.url.replace(/^\//, '');
+  if (!board_id.match(/^[a-z0-9]{8}$/)) {
+    console.log("bad board_id " + board_id);
+    ws.close();
+    return;
+  }
+  var board = boards[board_id];
+  if (board == null) {
+    board = {
+      conns: {},
+      conn_counter: 0,
+      state: new State(),
+    };
+    boards[board_id] = board;
+  }
+  ws.conn_id = board.conn_counter++;
+  board.conns[ws.conn_id] = ws;
   console.log("opening connection #" + ws.conn_id);
-  ws.send(JSON.stringify(state));
+  ws.send(JSON.stringify(board.state));
   ws.on("close", function() {
     console.log("closing connection #" + this.conn_id);
-    delete conns[this.conn_id];
+    delete board.conns[this.conn_id];
   });
 });

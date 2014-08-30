@@ -290,7 +290,8 @@ function do_ai(state, strat) {
 }
 
 function open_ws(view) {
-  var host = location.origin.replace(/^http/, 'ws');
+  var host = location.origin.replace(/^http/, 'ws') + '/' + board_id;
+  console.log(host);
   var ws = new WebSocket(host);
   ws.addEventListener('message', function (event) {
     view.set_state(_.extend(new State(), JSON.parse(event.data)));
@@ -311,7 +312,7 @@ function go() {
   $(c).on('mousedown', e => {
     var move = view.do_mouse(e);
     if (move != null) {
-      $.ajax({url:'/move', data: {move: JSON.stringify(move)}});
+      $.ajax({url:'move', data: {move: JSON.stringify(move)}});
       console.log(move);
     }
     e.preventDefault();
