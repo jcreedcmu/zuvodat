@@ -20,6 +20,7 @@ var State = (function(){var DP$0 = Object.defineProperty;"use strict";
     // side ::= 0 horiz or 1 vert
     // stones[player][side][ix]
     this.stones = [[],[]];
+    this.moves = [];
     this.stones[0][0] = _.times(11, function()  {return 0});
     this.stones[0][1] = _.times(11, function()  {return 0});
     this.stones[1][0] = _.times(11, function()  {return 0});
@@ -50,11 +51,13 @@ var State = (function(){var DP$0 = Object.defineProperty;"use strict";
     var other_stones = this.stones[1-player][side][ix];
     if (move.action == 'add' && stones < MAX_STONES) {
       var ns = this.clone();
+      ns.moves.push(move);
       ns.stones[player][side][ix]++;
       ns.cur_player = 1 - ns.cur_player;
       return ns;
     } else if (move.action == 'kick' && stones > 0) {
       var ns$0 = this.clone();
+      ns$0.moves.push(move);
       var vel = {x: stones, y: 0};
       ns$0.stones[1-player][side][ix] = Math.max(0, other_stones - stones);
       ns$0.stones[player][side][ix] = 0;

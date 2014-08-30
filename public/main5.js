@@ -8,8 +8,10 @@ STONE_START = 26;
 STONE_SPACE = 11;
 TRI_START = 25;
 TRI_SIZE_X = 9;
+TRI_OFFSET = 9;
 TRI_SIZE_Y = 5;
 TOP_ROW_Y = 8;
+STONE_SIZE = 7;
 BOTTOM_ROW_Y = 154;
 BLOT_SIZE = {x: 119, y: 15};
 
@@ -73,7 +75,6 @@ var View = (function(){"use strict";
 	  d.drawImage(g, 1, AVATAR_OFF, AVATAR_SIZE, AVATAR_SIZE, AVATAR_OFF, AVATAR_OFF, AVATAR_SIZE, AVATAR_SIZE);
 	}
       }
-
     }
     else {
       hit.x = (d.x - int((w - BOARD_SIZE * SCALE) / 2)) / SCALE;
@@ -115,7 +116,20 @@ var View = (function(){"use strict";
 
 	var active = player == st.cur_player && st.stones[player][side][ix] > 0 && (ix == (side ? st.ball.y : st.ball.x));
 	var ty = player == 0 ? 0 : 164;
-	var src = {x: TRI_START + (active ? 0 : STONE_SPACE), y: ty};
+	var ARROW_TYPE = 1;
+	if (active) {
+	  ARROW_TYPE = 0;
+	}
+	else if (st.moves.length > 0) {
+	  var last_move = _.last(st.moves);
+	  if (last_move.action == "kick"
+	      && last_move.ix == ix
+	      && last_move.side == side
+	      && last_move.player == player) {
+	    ARROW_TYPE = 2;
+	  }
+	}
+	var src = {x: TRI_START + STONE_SPACE * ARROW_TYPE, y: ty};
 	var dst = {x: TRI_START + STONE_SPACE * ix, y: ty};
 	var size = {x: TRI_SIZE_X, y: TRI_SIZE_Y};
 	if (side) {
@@ -134,6 +148,26 @@ var View = (function(){"use strict";
 	  _.each(st.stones[player][side], draw_stones(player, side));
 	});
       });
+
+
+      if (st.moves.length > 0) {
+	var last_move = _.last(st.moves);
+	var blot, blot_size;
+	if (last_move.action == 'add') {
+	  // blot = {x: -1 + TRI_START + last_move.ix * STONE_SPACE,
+	  // 	  y: last_move.player == 0 ? -1 : BOTTOM_ROW_Y + TRI_OFFSET};
+	  // blot_size = {x: TRI_SIZE_X + 2, y: TRI_SIZE_Y + 2};
+	  blot = {x: TRI_START + last_move.ix * STONE_SPACE,
+		  y: last_move.player == 0 ? TRI_SIZE_Y + 2 : BOTTOM_ROW_Y - 1};
+	  blot_size = {x: STONE_SIZE + 2, y: STONE_SIZE + 2};
+	  if (last_move.side) {
+	    blot = vswap(blot);
+	    blot_size = vswap(blot_size);
+	  }
+	  d.strokeStyle = 'rgba(255,255,128,0.7)';
+	  d.strokeRect(blot.x - 0.5, blot.y - 0.5, blot_size.x + 1, blot_size.y + 1);
+	}
+      }
     }
 
     if (!hit_test) {
@@ -150,6 +184,7 @@ var View = (function(){"use strict";
       return st;
     } catch (move) {
       if (move.active) {
+	delete move.active;
 	return move;
       }
       else {

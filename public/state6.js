@@ -20,6 +20,7 @@ class State {
     // side ::= 0 horiz or 1 vert
     // stones[player][side][ix]
     this.stones = [[],[]];
+    this.moves = [];
     this.stones[0][0] = _.times(11, () => 0);
     this.stones[0][1] = _.times(11, () => 0);
     this.stones[1][0] = _.times(11, () => 0);
@@ -50,11 +51,13 @@ class State {
     var other_stones = this.stones[1-player][side][ix];
     if (move.action == 'add' && stones < MAX_STONES) {
       let ns = this.clone();
+      ns.moves.push(move);
       ns.stones[player][side][ix]++;
       ns.cur_player = 1 - ns.cur_player;
       return ns;
     } else if (move.action == 'kick' && stones > 0) {
       let ns = this.clone();
+      ns.moves.push(move);
       var vel = {x: stones, y: 0};
       ns.stones[1-player][side][ix] = Math.max(0, other_stones - stones);
       ns.stones[player][side][ix] = 0;
