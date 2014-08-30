@@ -1,4 +1,4 @@
-SCALE = 3;
+SCALE = 4;
 BOARD_SIZE = 169;
 AVATAR_OFF = 151;
 AVATAR_SIZE = 17;
@@ -39,7 +39,7 @@ class View {
       d.fillRect(0,0,w,h);
       d.translate(int((w - BOARD_SIZE * SCALE) / 2),
 		  int((h - BOARD_SIZE * SCALE) / 2));
-      d.scale(3,3);
+      d.scale(SCALE,SCALE);
 
       d.drawImage(g, 0, 0, BOARD_SIZE, BOARD_SIZE, 0, 0, BOARD_SIZE, BOARD_SIZE);
       d.fillStyle = BGCOLOR;
@@ -76,8 +76,8 @@ class View {
 
     }
     else {
-      hit.x = (d.x - int((w - BOARD_SIZE * SCALE) / 2)) / 3;
-      hit.y = (d.y - int((h - BOARD_SIZE * SCALE) / 2)) / 3;
+      hit.x = (d.x - int((w - BOARD_SIZE * SCALE) / 2)) / SCALE;
+      hit.y = (d.y - int((h - BOARD_SIZE * SCALE) / 2)) / SCALE;
     }
 
 
