@@ -314,14 +314,15 @@ var Simple = (function(){"use strict";function Simple() {}DP$0(Simple, "prototyp
 
 function do_ai(state, strat) {
   var move = strat.best_move(state);
-  var newstate = state.step(move);
-  if (newstate != "illegal") {
-    return newstate;
-  }
-  else {
-    console.log('ai tried to make illegal move', move, state);
-    return state;
-  }
+  return move;
+  // var newstate = state.step(move);
+  // if (newstate != "illegal") {
+  //   return newstate;
+  // }
+  // else {
+  //   console.log('ai tried to make illegal move', move, state);
+  //   return state;
+  // }
 }
 
 function open_ws(view) {
@@ -338,6 +339,10 @@ function open_ws(view) {
   });
 }
 
+function make_move(move) {
+  $.ajax({url:'move', data: {move: JSON.stringify(move)}});
+}
+
 function go() {
   fullscreen();
 
@@ -347,22 +352,23 @@ function go() {
   $(c).on('mousedown', function(e ) {
     var move = view.do_mouse(e);
     if (move != null) {
-      $.ajax({url:'move', data: {move: JSON.stringify(move)}});
-      console.log(move);
+      make_move(move);
     }
     e.preventDefault();
   });
 
-  // $('body').on('keydown', e => {
-  //   if (e.keyCode == 32) {
-  //     view.set_state(do_ai(view.state, new Simple()));
-  //     view.render(d);
-  //     e.preventDefault();
-  //   }
-  //   if (e.keyCode == 72) { // 'h'
-  //     view.set_state(do_ai(view.state, new Lookahead({width: 1})));
-  //     view.render(d);
-  //     e.preventDefault();
-  //   }
-  // });
+  $('body').on('keydown', function(e ) {
+    if (e.keyCode == 32) {
+      make_move(do_ai(view.state, new Simple()));
+      e.preventDefault();
+    }
+    if (e.keyCode == 72) { // 'h'
+      make_move(do_ai(view.state, new Lookahead({width: 1})));
+      e.preventDefault();
+    }
+    if (e.keyCode == 74) { // 'j'
+      make_move(do_ai(view.state, new Lookahead({width: 2})));
+      e.preventDefault();
+    }
+  });
 }
