@@ -80,7 +80,7 @@ class State {
       return ns;
     }
     else {
-      return {err: 'bad action or invariant violation'};
+      return {err: 'bad action or invariant violation', move: move};
     }
   }
 

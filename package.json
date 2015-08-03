@@ -2,12 +2,12 @@
   "name": "zuvotad",
   "version": "0.0.1",
   "dependencies": {
-    "underscore": "*",
-    "ws": "0.4.x",
-    "express": "^4.4.5",
     "es6-transpiler": "^0.7.13-5",
+    "execSync": "^1.0.1-pre",
+    "express": "^4.4.5",
     "glob": "^3.2.9",
-    "execSync": "^1.0.1-pre"
+    "underscore": "*",
+    "ws": "0.4.x"
   },
   "engines": {
     "node": "0.10.x"

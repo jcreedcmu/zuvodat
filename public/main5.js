@@ -199,6 +199,7 @@ var Lookahead = (function(){"use strict";
   function Lookahead(opts) {
     this.depth = 3;
     this.width = 1;
+    this.ball_factor = 5;
     if (opts != null)
       _.extend(this, opts);
     console.log(this.width);
@@ -245,7 +246,7 @@ var Lookahead = (function(){"use strict";
       var v = bstone.me[0] + bstone.me[1] +
 	sum(relstone.me[0]) + sum(relstone.me[1])
 	- sum(relstone.them[0]) - sum(relstone.them[1]) +
-	5 * (ballgood.x + ballgood.y);
+	this.ball_factor * (ballgood.x + ballgood.y);
       return v;
     }
     else {
@@ -312,6 +313,73 @@ var Simple = (function(){"use strict";function Simple() {}DP$0(Simple, "prototyp
   }
 ;return Simple;})();
 
+var Random = (function(){"use strict";
+
+  function Random(kick_bias) {
+    this.kick_bias = kick_bias;
+  }DP$0(Random, "prototype", {"configurable": false, "enumerable": false, "writable": false});
+
+  Random.prototype.best_move = function(state) {
+    var player = state.cur_player;
+
+    var cands = [];
+    for (var side = 0; side < 2; side++) {
+      var sxy = side ? 'y' : 'x';
+      for (var ix = 0; ix < MAX_STONES; ix++) {
+	if (state.stones[player][side][ix] < 11)
+	  cands.push({player: player, action: 'add', side: side, ix: ix, score: (ix == state.ball[sxy] ? 0.25 : 0) + Math.random()});
+      }
+      if (state.stones[player][side][state.ball[sxy]] >= 1)
+	cands.push({player: player, action: 'kick', side: side, ix: state.ball[sxy], score: this.kick_bias + Math.random()});
+    }
+    var best = _.max(cands, function(x ) {return x.score});
+    delete best.score;
+    return best;
+  }
+;return Random;})();
+
+var RandomEval = (function(){"use strict";function RandomEval() {}DP$0(RandomEval, "prototype", {"configurable": false, "enumerable": false, "writable": false});
+
+  RandomEval.prototype.eval_state = function(me, rand_strat, state) {
+    var opp = 1 - me; // this is 'opponent',
+    // we're going to give high positive scores for fast 'proponent' victories
+    // and high negative scores for fast 'opponent victories'
+    var NUM_STEPS = 1000;
+    for (var i = 0; i < NUM_STEPS; i++) {
+      if (state.victory) {
+	var score = NUM_STEPS - i;
+	if (state.cur_player == opp) {
+	  score = -score;
+	}
+	return score;
+      }
+      state = state.step(rand_strat.best_move(state));
+    }
+    return 0;
+  }
+
+  RandomEval.prototype.best_move = function(state) {var this$0 = this;
+    var player = state.cur_player;
+    var cands = [];
+    var rand = new Random(0.5);
+    for (var side = 0; side < 2; side++) {
+      for (var ix = 0; ix < MAX_STONES; ix++) {
+	cands.push({player: player, action: 'add', side: side, ix: ix});
+      }
+      var sxy = side ? 'y' : 'x';
+      if (state.stones[player][side][state.ball[sxy]] >= 1)
+	cands.push({player: player, action: 'kick', side: side, ix: state.ball[sxy]});
+    }
+    return _.max(cands, function(move ) {
+      var score = this$0.eval_state(player, rand, state.step(move)) +
+	this$0.eval_state(player, rand, state.step(move)) +
+	this$0.eval_state(player, rand, state.step(move));
+//      console.log(move, score > 0 ? 'win ' + (1000 - score) : 'loss ' + (score + 1000));
+      return score;
+    });
+  }
+;return RandomEval;})();
+
 function do_ai(state, strat) {
   var move = strat.best_move(state);
   return move;
@@ -326,7 +394,7 @@ function do_ai(state, strat) {
 }
 
 function open_ws(view) {
-  var host = location.origin.replace(/^http/, 'ws') + '/' + board_id;
+  var host = location.origin.replace(/^http/, 'ws') + '/';
   console.log(host);
   var ws = new WebSocket(host);
   ws.addEventListener('message', function (event) {
@@ -358,6 +426,7 @@ function go() {
   });
 
   $('body').on('keydown', function(e ) {
+    if (e.ctrlKey) return;
     if (e.keyCode == 32) {
       make_move(do_ai(view.state, new Simple()));
       e.preventDefault();
@@ -366,8 +435,16 @@ function go() {
       make_move(do_ai(view.state, new Lookahead({width: 1})));
       e.preventDefault();
     }
+    if (e.keyCode == 73) { // 'i'
+      make_move(do_ai(view.state, new Lookahead({width: 2, ball_factor: 2})));
+      e.preventDefault();
+    }
     if (e.keyCode == 74) { // 'j'
       make_move(do_ai(view.state, new Lookahead({width: 2})));
+      e.preventDefault();
+    }
+    if (e.keyCode == 82) { // 'r'
+      make_move(do_ai(view.state, new RandomEval()));
       e.preventDefault();
     }
   });

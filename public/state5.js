@@ -80,7 +80,7 @@ var State = (function(){var DP$0 = Object.defineProperty;"use strict";
       return ns$0;
     }
     else {
-      return {err: 'bad action or invariant violation'};
+      return {err: 'bad action or invariant violation', move: move};
     }
   }
 
