@@ -39,7 +39,6 @@ export class View {
 
     const draw_stones = (player: Player, side: Side) => {
       return (num: number, ix: number) => {
-
         // coordinates and activeness of stone counter
         const inactive = (player != st.cur_player || num == MAX_STONES) ? 1 : 0;
         let px = STONE_START + ix * STONE_SPACE;
@@ -110,8 +109,6 @@ export class View {
             blot_size = u.vswap(blot_size);
           }
           parts.push({ t: 'blot', rect: { p: blot, sz: blot_size } });
-          // d.strokeStyle = 'rgba(255,255,128,0.7)';
-          // d.strokeRect(blot.x - 0.5, blot.y - 0.5, blot_size.x + 1, blot_size.y + 1);
         }
       }
     }
@@ -167,7 +164,16 @@ export class View {
 
   renderPart(p: Part): void {
     const { d } = this;
-
+    switch (p.t) {
+      case 'sprite':
+        d.drawImage(this.gameImg, p.sprite.src.x, p.sprite.src.y, p.rect.sz.x, p.rect.sz.y,
+          p.rect.p.x, p.rect.p.y, p.rect.sz.x, p.rect.sz.y);
+        break;
+      case 'blot':
+        d.strokeStyle = 'rgba(255,255,128,0.7)';
+        d.strokeRect(p.rect.p.x - 0.5, p.rect.p.y - 0.5, p.rect.sz.x + 1, p.rect.sz.y + 1);
+        break;
+    }
   }
 
   do_hit_test(st: State, p: Point) {
@@ -180,20 +186,9 @@ export class View {
 
   draw_screen(st: State, screen: Screen) {
     this.renderBg(st);
-    this.screen_parts(st).forEach(part => this.renderPart(part));
-
-
-
-
-
-
-
-
-    // switch (state.screen.t) {
-    //   case 'title':
-    //     break;
-    //   default: return nope(state.screen.t);
-    // }
+    this.screen_parts(st).forEach(part => {
+      this.renderPart(part)
+    });
   }
 
 

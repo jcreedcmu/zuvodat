@@ -1,5 +1,5 @@
 import { PLAY_SIZE } from './constants';
-import { Point, Dict, Rect, Dir, Move } from './types';
+import { Point, Dict, Rect, Dir, Move, Player, Side } from './types';
 import { nope, inrect, vminus, vplus } from './util';
 import * as u from './util';
 import { produce } from 'immer';
@@ -33,12 +33,13 @@ export interface MapI<T, U> {
   set(k: T, u: U): void;
 }
 
+export type Stones = { [player: number]: { [side: number]: number[] } };
 
 export type State = {
   ball: Point,
   victory: boolean,
   cur_player: number,
-  stones: { [player: number]: { [side: number]: number[] } },
+  stones: Stones,
   moves: Move[],
   screen: Screen,
   eph: EphemeralState,
@@ -48,8 +49,18 @@ class UnknownLevelError extends Error {
 }
 
 
+function init_stones(): Stones {
+  const rv: Stones = { 0: { 0: [], 1: [] }, 1: { 0: [], 1: [] } };
+  [0, 1].forEach((player: Player) => {
+    [0, 1].forEach((side: Side) => {
+      for (let i = 0; i < 11; i++)
+        rv[player][side][i] = 0;
+    });
+  });
+  return rv;
+};
 export const init_state: State = {
-  stones: { 0: { 0: [], 1: [] }, 1: { 0: [], 1: [] } },
+  stones: init_stones(),
   moves: [],
   ball: { x: 5, y: 5 },
   victory: false,
