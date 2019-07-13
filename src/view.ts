@@ -1,4 +1,4 @@
-import { PLAY_SIZE, SCALE, DEBUG, DIR_BUTTON_SIZE, DIR_BUTTON_MARGIN, DIR_BUTTON_LABEL_SIZE } from './constants';
+import { SCALE, DEBUG, PLAY_SIZE } from './constants';
 import { nope, int, vm, vm2, vmn, vplus, vminus, vint, vfpart, Buffer, buffer, fbuf } from './util';
 import * as u from './util';
 import { Point, WidgetPoint, Rect, Color, Dict, TileType, Sprite, Dir } from './types';
