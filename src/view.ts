@@ -200,13 +200,6 @@ export class View {
   drawScaled(state: State): void {
     const { d } = this;
 
-    // background
-    d.fillStyle = "#000000";
-    d.fillRect(0, 0, this.wsize.x, this.wsize.y);
-    // d.fillStyle = "#ff0000";
-    // d.fillRect(this.origin.x, this.origin.y,
-    //   PLAY_SIZE.x * SCALE, PLAY_SIZE.y * SCALE);
-
     d.save();
     d.imageSmoothingEnabled = false;
     this.draw_screen(state, state.screen);
