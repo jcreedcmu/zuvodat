@@ -208,8 +208,6 @@ export class View {
     //   PLAY_SIZE.x * SCALE, PLAY_SIZE.y * SCALE);
 
     d.save();
-    d.translate(this.origin.x, this.origin.y);
-    // d.scale(SCALE, SCALE);
     d.imageSmoothingEnabled = false;
     this.draw_screen(state, state.screen);
     d.restore();
