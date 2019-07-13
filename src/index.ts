@@ -61,8 +61,6 @@ class App {
       return (e: MouseEvent) => {
         const wpoint = { x: e.clientX, y: e.clientY };
         const move = view.do_hit_test(model.state, wpoint);
-        if (move != null)
-          console.log(move);
         if (model.handle_event(adapt(wpoint, move))) {
           view.draw(model.state);
         }

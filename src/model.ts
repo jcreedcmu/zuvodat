@@ -15,6 +15,8 @@ export class Model {
       this.state = newstate;
       return true;
     }
-    else return false;
+    else {
+      return false;
+    }
   }
 }
