@@ -2,7 +2,7 @@ import { View } from './view';
 import { State, Event, init_state } from './state';
 import { Model } from './model';
 import { imgProm, nope } from './util';
-import { Dict, WidgetPoint, TERM } from './types';
+import { Dict, TERM, Point } from './types';
 import { DEBUG } from './constants';
 import { produce } from 'immer';
 import { Loader } from './loader';
@@ -57,9 +57,9 @@ class App {
   init_mouse(): void {
     const { view, model } = this;
     const c = view.c;
-    function handler(adapt: (p: WidgetPoint) => Event): (e: MouseEvent) => void {
+    function handler(adapt: (p: Point) => Event): (e: MouseEvent) => void {
       return (e: MouseEvent) => {
-        const wpoint = view.wpoint_of_canvas({ x: e.clientX, y: e.clientY }, model.state);
+        const wpoint = { x: e.clientX, y: e.clientY };
         if (model.handle_event(adapt(wpoint))) {
           view.draw(model.state);
         }

@@ -229,3 +229,11 @@ export function pointOfDir(dir: Dir): Point {
 }
 
 export const allDirs: Dir[] = ['n', 'e', 's', 'w'];
+
+export function vswap(p: Point): Point {
+  return { x: p.y, y: p.x };
+}
+
+export function last<T>(a: T[]) {
+  return a[a.length - 1];
+}

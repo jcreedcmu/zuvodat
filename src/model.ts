@@ -1,5 +1,5 @@
 import { State, Screen, Event, reduce } from "./state";
-import { WidgetPoint, Point } from './types';
+import { Point } from './types';
 
 export class Model {
   state: State;

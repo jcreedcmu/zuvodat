@@ -14,6 +14,8 @@ export const TOP_ROW_Y = 8;
 export const BOTTOM_ROW_Y = 154;
 export const BLOT_SIZE = { x: 119, y: 15 };
 export const PLAY_SIZE = { x: 250, y: 250 }; // XXX not right
+export const MAX_STONES = 11;
+
 
 export const DEBUG = {
   globals: true,

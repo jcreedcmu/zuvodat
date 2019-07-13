@@ -1,10 +1,11 @@
 import { PLAY_SIZE } from './constants';
-import { Point, WidgetPoint, Dict, TileType, Rect, Dir } from './types';
+import { Point, Dict, Rect, Dir, Move } from './types';
 import { nope, inrect, vminus, vplus } from './util';
 import * as u from './util';
 import { produce } from 'immer';
 
 import { match } from './matcher';
+
 
 
 export type Position =
@@ -32,7 +33,13 @@ export interface MapI<T, U> {
   set(k: T, u: U): void;
 }
 
+
 export type State = {
+  ball: Point,
+  victory: boolean,
+  cur_player: number,
+  stones: { [player: number]: { [side: number]: number[] } },
+  moves: Move[],
   screen: Screen,
   eph: EphemeralState,
 };
@@ -42,6 +49,11 @@ class UnknownLevelError extends Error {
 
 
 export const init_state: State = {
+  stones: { 0: { 0: [], 1: [] }, 1: { 0: [], 1: [] } },
+  moves: [],
+  ball: { x: 5, y: 5 },
+  victory: false,
+  cur_player: 0,
   screen: { t: 'title' },
   eph: {
     mouse: { t: 'up', id: null },
@@ -49,9 +61,9 @@ export const init_state: State = {
 };
 
 export type Event =
-  | { t: 'mousedown', p: WidgetPoint }
-  | { t: 'mouseup', p: WidgetPoint }
-  | { t: 'mousemove', p: WidgetPoint };
+  | { t: 'mousedown', p: Point }
+  | { t: 'mouseup', p: Point }
+  | { t: 'mousemove', p: Point };
 
 export function reduce_action(state: State, action: Action): State {
   return state;
