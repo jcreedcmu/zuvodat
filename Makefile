@@ -1,0 +1,3 @@
+watch:
+	node server.js
+
