@@ -72,7 +72,7 @@ export const init_state: State = {
 };
 
 export type Event =
-  | { t: 'mousedown', p: Point }
+  | { t: 'mousedown', p: Point, move: Move | null }
   | { t: 'mouseup', p: Point }
   | { t: 'mousemove', p: Point };
 

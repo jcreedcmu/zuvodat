@@ -2,7 +2,7 @@ import { View } from './view';
 import { State, Event, init_state } from './state';
 import { Model } from './model';
 import { imgProm, nope } from './util';
-import { Dict, TERM, Point } from './types';
+import { Dict, TERM, Point, Move } from './types';
 import { DEBUG } from './constants';
 import { produce } from 'immer';
 import { Loader } from './loader';
@@ -57,15 +57,18 @@ class App {
   init_mouse(): void {
     const { view, model } = this;
     const c = view.c;
-    function handler(adapt: (p: Point) => Event): (e: MouseEvent) => void {
+    function handler(adapt: (p: Point, m: Move | null) => Event): (e: MouseEvent) => void {
       return (e: MouseEvent) => {
         const wpoint = { x: e.clientX, y: e.clientY };
-        if (model.handle_event(adapt(wpoint))) {
+        const move = view.do_hit_test(model.state, wpoint);
+        if (move != null)
+          console.log(move);
+        if (model.handle_event(adapt(wpoint, move))) {
           view.draw(model.state);
         }
       }
     }
-    c.onmousedown = handler(p => ({ t: 'mousedown', p }));
+    c.onmousedown = handler((p, move) => ({ t: 'mousedown', p, move }));
     document.onmouseup = handler(p => ({ t: 'mouseup', p }));
     c.onmousemove = handler(p => ({ t: 'mousemove', p }));
   }

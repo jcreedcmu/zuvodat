@@ -1,7 +1,7 @@
 import { SCALE, DEBUG, PLAY_SIZE, BOARD_SIZE, AVATAR_SIZE, STONE_START, STONE_SIZE, STONE_SPACE, BGCOLOR, AVATAR_OFF, TRI_START, BOTTOM_ROW_Y, BLOT_SIZE, MAX_STONES, TOP_ROW_Y, TRI_SIZE_X, TRI_SIZE_Y } from './constants';
 import { nope, int, vm, vm2, vmn, vplus, vminus, vint, vfpart, Buffer, buffer, fbuf } from './util';
 import * as u from './util';
-import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part } from './types';
+import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part, Move } from './types';
 import {
   State, MouseEphState, Screen,
   Position,
@@ -30,7 +30,7 @@ export class View {
     d.restore();
   }
 
-  screen_parts(st: State): Part[] {
+  getParts(st: State): Part[] {
     const parts: Part[] = [];
 
     function blit(src: Point, dst: Point, size: Point, data: PartInfo) {
@@ -176,17 +176,22 @@ export class View {
     }
   }
 
-  do_hit_test(st: State, p: Point) {
+  do_hit_test(st: State, p: Point): Move | null {
     const hit = {
       x: (p.x - int((this.wsize.x - BOARD_SIZE * SCALE) / 2)) / SCALE,
       y: (p.y - int((this.wsize.y - BOARD_SIZE * SCALE) / 2)) / SCALE
     };
-
+    for (let part of this.getParts(st)) {
+      if (u.inrect(hit, part.rect) && part.t == 'sprite') {
+        return part.info;
+      }
+    }
+    return null;
   }
 
   draw_screen(st: State, screen: Screen) {
     this.renderBg(st);
-    this.screen_parts(st).forEach(part => {
+    this.getParts(st).forEach(part => {
       this.renderPart(part)
     });
   }
