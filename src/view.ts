@@ -4,7 +4,6 @@ import * as u from './util';
 import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part, Move } from './types';
 import {
   State, MouseEphState, Screen,
-  Position,
 } from './state';
 
 

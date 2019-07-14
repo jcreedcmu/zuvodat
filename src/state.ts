@@ -3,16 +3,7 @@ import { Point, Dict, Rect, Dir, Move, Player, Side } from './types';
 import { nope, inrect, vminus, vplus } from './util';
 import * as u from './util';
 import { produce } from 'immer';
-
 import { match } from './matcher';
-
-
-
-export type Position =
-  | { t: 'vcent', x: number }
-  | { t: 'vcent_right', x: number }
-  | { t: 'hcent', y: number }
-  | { t: 'hcent_bot', y: number };
 
 export type Screen = { t: 'title' };
 export type Action =
@@ -44,10 +35,6 @@ export type State = {
   screen: Screen,
   eph: EphemeralState,
 };
-
-class UnknownLevelError extends Error {
-}
-
 
 function init_stones(): Stones {
   const rv: Stones = { 0: { 0: [], 1: [] }, 1: { 0: [], 1: [] } };
