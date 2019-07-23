@@ -1,5 +1,6 @@
 import { SCALE, DEBUG, PLAY_SIZE, BOARD_SIZE, AVATAR_SIZE, STONE_START, STONE_SIZE, STONE_SPACE, BGCOLOR, AVATAR_OFF, TRI_START, BOTTOM_ROW_Y, BLOT_SIZE, MAX_STONES, TOP_ROW_Y, TRI_SIZE_X, TRI_SIZE_Y } from './constants';
-import { nope, int, vm, vm2, vmn, vplus, vminus, vint, vfpart, Buffer, buffer, fbuf } from './util';
+import { nope, int, vm, vm2, vmn, vplus, vminus, vint, vfpart } from './util';
+import { Buffer, buffer, fbuf } from './dutil';
 import * as u from './util';
 import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part, Move } from './types';
 import {

@@ -1,7 +1,8 @@
 import { View } from './view';
 import { State, Event, init_state } from './state';
 import { Model } from './model';
-import { imgProm, nope } from './util';
+import { nope } from './util';
+import { imgProm } from './dutil';
 import { Dict, TERM, Point, Move } from './types';
 import { DEBUG } from './constants';
 import { produce } from 'immer';

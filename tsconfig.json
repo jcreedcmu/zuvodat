@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+	 "downlevelIteration": true,
+    "module": "commonjs",
+    "target": "es5",
+    "sourceMap": false,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+	 "lib": [ "es2017" ]
+  }
+}
