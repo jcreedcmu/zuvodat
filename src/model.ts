@@ -1,5 +1,4 @@
-import { State, Screen, Event, reduce } from "./state";
-import { Point } from './types';
+import { State, Screen } from "./state";
 
 export class Model {
   state: State;
@@ -8,8 +7,7 @@ export class Model {
     this.state = state;
   }
 
-  handle_event(e: Event): boolean {
-    const newstate = reduce(this.state, e);
+  set_state(newstate: State): boolean {
     // XXX better check than this??
     if (JSON.stringify(this.state) != JSON.stringify(newstate)) {
       this.state = newstate;

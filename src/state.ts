@@ -9,15 +9,6 @@ export type Screen = { t: 'title' };
 export type Action =
   | { t: 'init' };
 
-export type MouseEphState =
-  | { t: 'button', id: string | null, origId: string }
-  | { t: 'tile', id: string, pt: Point, origPt: Point }
-  | { t: 'up', id: string | null }
-  | { t: 'down', id: string | null };
-
-export type EphemeralState = {
-  mouse: MouseEphState
-}
 
 export interface MapI<T, U> {
   get(k: T): U;
@@ -32,8 +23,6 @@ export type State = {
   cur_player: number,
   stones: Stones,
   moves: Move[],
-  screen: Screen,
-  eph: EphemeralState,
 };
 
 function init_stones(): Stones {
@@ -53,16 +42,7 @@ export const init_state: State = {
   ball: { x: 5, y: 5 },
   victory: false,
   cur_player: 0,
-  screen: { t: 'title' },
-  eph: {
-    mouse: { t: 'up', id: null },
-  }
 };
-
-export type Event =
-  | { t: 'mousedown', p: Point, move: Move | null }
-  | { t: 'mouseup', p: Point }
-  | { t: 'mousemove', p: Point };
 
 type Err = { err: string };
 
@@ -116,19 +96,13 @@ export function reduce_move(state: State, move: Move | null): State | Err {
   }
 }
 
-export function reduce(state: State, event: Event): State {
-  return match(event).give<State>()
-    .cas('mousedown', ({ move }) => {
-      const state_or_err = reduce_move(state, move);
-      if ('err' in state_or_err) {
-        console.log(state_or_err);
-        return state;
-      }
-      else {
-        return state_or_err;
-      }
-    })
-    .cas('mouseup', x => state)
-    .cas('mousemove', x => state)
-    .done();
+export function reduce(state: State, move: Move): State {
+  const state_or_err = reduce_move(state, move);
+  if ('err' in state_or_err) {
+    console.log(state_or_err);
+    return state;
+  }
+  else {
+    return state_or_err;
+  }
 }

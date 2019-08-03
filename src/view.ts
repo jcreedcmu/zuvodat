@@ -4,7 +4,7 @@ import { Buffer, buffer, fbuf } from './dutil';
 import * as u from './util';
 import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part, Move } from './types';
 import {
-  State, MouseEphState, Screen,
+  State, Screen,
 } from './state';
 
 
@@ -23,6 +23,8 @@ export class View {
   }
 
   draw(state: State): void {
+    if (this.wsize == undefined)
+      this.resize();
     const { d } = this;
     d.save();
     d.scale(devicePixelRatio, devicePixelRatio);
@@ -189,7 +191,7 @@ export class View {
     return null;
   }
 
-  draw_screen(st: State, screen: Screen) {
+  draw_screen(st: State) {
     this.renderBg(st);
     this.getParts(st).forEach(part => {
       this.renderPart(part)
@@ -202,7 +204,7 @@ export class View {
 
     d.save();
     d.imageSmoothingEnabled = false;
-    this.draw_screen(state, state.screen);
+    this.draw_screen(state);
     d.restore();
 
     if (DEBUG.devicePixelRatio) {

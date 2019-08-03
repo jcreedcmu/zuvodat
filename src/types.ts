@@ -8,21 +8,25 @@ export const TERM = 'TERM';
 
 export type Dir = 'n' | 's' | 'w' | 'e';
 
+export type ClientMsg = { board_id: string, move: Move };
 
-export type Move = {
+export type AddMove = {
   action: 'add',
   player: Player,
   side: Side,
   ix: number,
   active: boolean
-}
-  | {
+};
+
+export type KickMove = {
   action: 'kick',
   player: Player,
   side: Side,
   ix: number,
   active: boolean
 };
+
+export type Move = AddMove | KickMove;
 
 export type PartInfo = Move;
 export type Sprite = { src: Point }; // position on sprite sheet
