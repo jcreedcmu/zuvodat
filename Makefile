@@ -1,3 +1,6 @@
-watch:
-	node server.js
+dev:
+	npm run dev
+
+start:
+	npm run start
 
