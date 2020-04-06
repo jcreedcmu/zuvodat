@@ -6,7 +6,7 @@ import { State, init_state, reduce_move } from './src/state';
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { Move, JoinClientMsg, MoveClientMsg, ClientMsg, Side } from './src/types';
+import { Move, JoinClientMsg, MoveClientMsg, ClientMsg, Side, WsMsg } from './src/types';
 
 function times(n: number, f: () => void) {
   for (let i = 0; i < n; i++)
@@ -82,7 +82,7 @@ function handle_move(msg: MoveClientMsg, res: express.Response) {
     // broadcast
     res.json('ok');
     Object.values(board.conns).forEach(ws => {
-      ws.sock.send(JSON.stringify(board.state));
+      wsSend(ws.sock, { t: 'new-state', state: board.state });
     });
   }
 }
@@ -104,10 +104,12 @@ function handle_join(msg: JoinClientMsg, res: express.Response) {
   // broadcast
   res.json('ok');
   Object.values(board.conns).forEach(ws => {
-    ws.sock.send(JSON.stringify(board.state));
+    wsSend(ws.sock, { t: 'join' });
   });
+}
 
-
+function wsSend(ws: WebSocket, msg: WsMsg) {
+  ws.send(JSON.stringify(msg));
 }
 
 export function start(k: (app: express.Express) => void) {
@@ -155,8 +157,6 @@ other = ${JSON.stringify(binfo.other)};
   server.listen(port)
   console.log('http server listening on %d', port)
 
-
-
   app.use(express.json());
   app.post('/b/:board/move', (req, res) => {
     const msg: ClientMsg = req.body;
@@ -190,7 +190,7 @@ other = ${JSON.stringify(binfo.other)};
       const conn: Connection = { sock, conn_id };
       board.conns[conn.conn_id] = conn;
       console.log('opening connection #' + conn_id);
-      sock.send(JSON.stringify(board.state));
+      wsSend(sock, { t: 'init-state', state: board.state });
       sock.on('close', () => {
         console.log('closing connection #' + conn_id);
         delete board.conns[conn_id];

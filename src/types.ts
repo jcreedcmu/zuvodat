@@ -1,3 +1,5 @@
+import { State } from "./state";
+
 export type Dict<T> = { [k: string]: T };
 export type Point = { x: number, y: number };
 export type Color = { r: number, g: number, b: number, a: number };
@@ -7,6 +9,11 @@ export type Ctx = CanvasRenderingContext2D;
 export const TERM = 'TERM';
 
 export type Dir = 'n' | 's' | 'w' | 'e';
+
+export type WsMsg =
+  | { t: 'join' }
+  | { t: 'new-state', state: State }
+  | { t: 'init-state', state: State };
 
 export type ClientMsg =
   | { t: 'join' } & JoinClientMsg

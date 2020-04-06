@@ -20,19 +20,11 @@ export class Model {
   }
 
   set_state(newstate: State): boolean {
-    let modified = false;
-
-    if (!this.gstate.started) {
-      this.gstate.started = true;
-      modified = true;
-    }
-
     // XXX better check than this??
     if (JSON.stringify(this.gstate.state) != JSON.stringify(newstate)) {
       this.gstate.state = newstate;
-      modified = true;
+      return true;
     }
-
-    return modified;
+    return false;
   }
 }

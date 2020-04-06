@@ -3,7 +3,7 @@ import { State, init_state } from './state';
 import { Model } from './model';
 import { nope } from './util';
 import { imgProm } from './dutil';
-import { Dict, TERM, Point, Move, ClientMsg, Side } from './types';
+import { Dict, TERM, Point, Move, ClientMsg, Side, WsMsg } from './types';
 import { DEBUG } from './constants';
 import { produce } from 'immer';
 import { Loader } from './loader';
@@ -101,8 +101,23 @@ class App {
 
   handle_msg(event: MessageEvent) {
     console.log("MESSAGE " + event.data);
-    if (this.model.set_state(JSON.parse(event.data))) {
-      this.redraw();
+    const wsmsg: WsMsg = JSON.parse(event.data);
+    switch (wsmsg.t) {
+      case 'init-state':
+        this.model.set_state(wsmsg.state);
+        this.redraw();
+        break;
+
+      case 'new-state':
+        if (this.model.set_state(wsmsg.state)) {
+          this.redraw();
+        }
+        break;
+
+      case 'join':
+        this.model.set_started();
+        this.redraw();
+        break;
     }
   }
 
