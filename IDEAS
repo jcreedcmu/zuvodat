@@ -1,0 +1,7 @@
+=== 2020.04.06
+
+Q: How did this work at the time of this commit?
+A: I did
+$ ts-node index.ts
+and went to
+http://localhost:5000
