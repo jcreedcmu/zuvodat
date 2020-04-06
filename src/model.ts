@@ -12,7 +12,7 @@ export class Model {
   gstate: GameState;
 
   constructor(state: State, whoami: Side, other: string) {
-    this.gstate = { state, started: false, whoami, other };
+    this.gstate = { state, started: whoami === 1, whoami, other };
   }
 
   set_started(): void {

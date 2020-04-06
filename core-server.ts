@@ -161,8 +161,8 @@ other = ${JSON.stringify(binfo.other)};
   app.post('/b/:board/move', (req, res) => {
     const msg: ClientMsg = req.body;
     switch (msg.t) {
-      case 'move': handle_move(msg, res);
-      case 'join': handle_join(msg, res);
+      case 'move': handle_move(msg, res); break;
+      case 'join': handle_join(msg, res); break;
     }
   });
 
