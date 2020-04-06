@@ -3,15 +3,17 @@ import { State, init_state } from './state';
 import { Model } from './model';
 import { nope } from './util';
 import { imgProm } from './dutil';
-import { Dict, TERM, Point, Move, ClientMsg } from './types';
+import { Dict, TERM, Point, Move, ClientMsg, Side } from './types';
 import { DEBUG } from './constants';
 import { produce } from 'immer';
 import { Loader } from './loader';
 
 const _TERM = TERM; // just to force typescript compiler to reload types.ts
 
-declare const board_id: string; // injected by server
-declare const whoami: 0 | 1; // injected by server
+// injected by server
+declare const board_id: string;
+declare const whoami: Side;
+declare const other: string;
 
 window.onload = () => {
   const app = new App;
@@ -26,7 +28,7 @@ class App {
     const c = document.getElementById('c') as HTMLCanvasElement;
     const d = c.getContext('2d') as CanvasRenderingContext2D;
     this.view = new View(c, d);
-    this.model = new Model(init_state, whoami);
+    this.model = new Model(init_state, whoami, other);
   }
 
   run(): void {
@@ -73,10 +75,12 @@ class App {
 
   handle_mouse(e: MouseEvent): void {
     const { view, model } = this;
-    const wpoint = { x: e.clientX, y: e.clientY };
-    const move: Move | null = view.do_hit_test(model.gstate.state, wpoint);
-    if (move != null) {
-      this.make_move(move);
+    if (model.gstate.started) {
+      const wpoint = { x: e.clientX, y: e.clientY };
+      const move: Move | null = view.do_hit_test(model.gstate.state, wpoint);
+      if (move != null) {
+        this.make_move(move);
+      }
     }
   }
 

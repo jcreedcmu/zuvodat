@@ -23,22 +23,21 @@ export class View {
   }
 
   draw(gstate: GameState): void {
-    // TODO:     if (gstate.started) {
-    document.getElementById('message')!.innerHTML = '';
-    if (this.wsize == undefined)
-      this.resize();
-    const { d } = this;
-    d.save();
-    d.scale(devicePixelRatio, devicePixelRatio);
-    this.drawScaled(gstate.state);
-    d.restore();
-    // TODO:
-    /*
-        }
-        else {
-          document.getElementById('message')!.innerHTML = 'blah blah <a href="#">blah</a>';
-        }
-    */
+    if (gstate.started || gstate.whoami == 1) {
+      document.getElementById('message')!.innerHTML = '';
+      if (this.wsize == undefined)
+        this.resize();
+      const { d } = this;
+      d.save();
+      d.scale(devicePixelRatio, devicePixelRatio);
+      this.drawScaled(gstate.state);
+      d.restore();
+    }
+    else {
+      const link = "/b/" + gstate.other;
+      const msg = `Give <a href="${link}">this link</a> to the other player.`;
+      document.getElementById('message')!.innerHTML = msg;
+    }
   }
 
   getParts(st: State): Part[] {
