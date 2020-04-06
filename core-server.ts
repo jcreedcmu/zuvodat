@@ -6,7 +6,7 @@ import { State, init_state, reduce_move } from './src/state';
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { Move, ClientMsg, Side } from './src/types';
+import { Move, JoinClientMsg, MoveClientMsg, ClientMsg, Side } from './src/types';
 
 function times(n: number, f: () => void) {
   for (let i = 0; i < n; i++)
@@ -47,6 +47,68 @@ type BoardInfo = {
 };
 
 const boards: { [k: string]: BoardInfo } = {};
+
+function handle_move(msg: MoveClientMsg, res: express.Response) {
+  const { board_id, move } = msg;
+
+  if (move === null) {
+    throw new Error('no move');
+  }
+
+  if (!board_id.match(/^[a-z0-9]{8}$/)) {
+    res.status(400).send('bad board id ' + board_id);
+  }
+  const binfo = boards[board_id];
+
+  if (binfo === null) {
+    throw new Error(`no such board ${board_id}`);
+  }
+
+  const { board } = binfo;
+  const step_res = reduce_move(board.state, move);
+
+  if (step_res == null) {
+    res.status(400).json({ err: 'step_res null' });
+    return;
+  }
+
+  if ('err' in step_res) {
+    console.log(step_res);
+    res.status(400).json(step_res);
+    return;
+  }
+  else {
+    board.state = step_res;
+    // broadcast
+    res.json('ok');
+    Object.values(board.conns).forEach(ws => {
+      ws.sock.send(JSON.stringify(board.state));
+    });
+  }
+}
+
+function handle_join(msg: JoinClientMsg, res: express.Response) {
+  const { board_id } = msg;
+
+  if (!board_id.match(/^[a-z0-9]{8}$/)) {
+    res.status(400).send('bad board id ' + board_id);
+  }
+  const binfo = boards[board_id];
+
+  if (binfo === null) {
+    throw new Error(`no such board ${board_id}`);
+  }
+
+  const { board } = binfo;
+
+  // broadcast
+  res.json('ok');
+  Object.values(board.conns).forEach(ws => {
+    ws.sock.send(JSON.stringify(board.state));
+  });
+
+
+}
 
 export function start(k: (app: express.Express) => void) {
   const app = express();
@@ -93,44 +155,14 @@ other = ${JSON.stringify(binfo.other)};
   server.listen(port)
   console.log('http server listening on %d', port)
 
+
+
   app.use(express.json());
   app.post('/b/:board/move', (req, res) => {
     const msg: ClientMsg = req.body;
-    const { board_id, move } = msg;
-
-    if (move === null) {
-      throw new Error('no move');
-    }
-
-    if (!board_id.match(/^[a-z0-9]{8}$/)) {
-      res.status(400).send('bad board id ' + board_id);
-    }
-    const binfo = boards[board_id];
-
-    if (binfo === null) {
-      throw new Error(`no such board ${board_id}`);
-    }
-
-    const { board } = binfo;
-    const step_res = reduce_move(board.state, move);
-
-    if (step_res == null) {
-      res.status(400).json({ err: 'step_res null' });
-      return;
-    }
-
-    if ('err' in step_res) {
-      console.log(step_res);
-      res.status(400).json(step_res);
-      return;
-    }
-    else {
-      board.state = step_res;
-      // broadcast
-      res.json('ok');
-      Object.values(board.conns).forEach(ws => {
-        ws.sock.send(JSON.stringify(board.state));
-      });
+    switch (msg.t) {
+      case 'move': handle_move(msg, res);
+      case 'join': handle_join(msg, res);
     }
   });
 

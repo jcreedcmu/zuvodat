@@ -8,7 +8,18 @@ export const TERM = 'TERM';
 
 export type Dir = 'n' | 's' | 'w' | 'e';
 
-export type ClientMsg = { board_id: string, move: Move };
+export type ClientMsg =
+  | { t: 'join' } & JoinClientMsg
+  | { t: 'move' } & MoveClientMsg;
+
+export type JoinClientMsg = {
+  board_id: string,
+};
+
+export type MoveClientMsg = {
+  board_id: string,
+  move: Move,
+};
 
 export type AddMove = {
   action: 'add',

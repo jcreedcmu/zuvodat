@@ -48,6 +48,9 @@ class App {
       view.gameImg = d.img['game'];
       this.resize();
       this.open_ws();
+      if (whoami === 1) {
+        this.send_join(board_id);
+      }
     });
   }
 
@@ -61,8 +64,7 @@ class App {
     this.view.draw(this.model.gstate);
   }
 
-  make_move(move: Move): void {
-    const msg: ClientMsg = { board_id, move };
+  send_msg(msg: ClientMsg): void {
     fetch('move', {
       method: 'POST',
       headers: {
@@ -73,13 +75,21 @@ class App {
     })
   }
 
+  send_move(move: Move): void {
+    this.send_msg({ t: 'move', board_id, move });
+  }
+
+  send_join(board_id: string): void {
+    this.send_msg({ t: 'join', board_id });
+  }
+
   handle_mouse(e: MouseEvent): void {
     const { view, model } = this;
     if (model.gstate.started) {
       const wpoint = { x: e.clientX, y: e.clientY };
       const move: Move | null = view.do_hit_test(model.gstate.state, wpoint);
       if (move != null) {
-        this.make_move(move);
+        this.send_move(move);
       }
     }
   }
@@ -90,7 +100,7 @@ class App {
   }
 
   handle_msg(event: MessageEvent) {
-    console.log("MESSAGE");
+    console.log("MESSAGE " + event.data);
     if (this.model.set_state(JSON.parse(event.data))) {
       this.redraw();
     }
