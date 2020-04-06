@@ -6,7 +6,7 @@ import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part, Move } fro
 import {
   State, Screen,
 } from './state';
-
+import { GameState } from './model';
 
 
 export class View {
@@ -22,14 +22,23 @@ export class View {
     this.d = d;
   }
 
-  draw(state: State): void {
+  draw(gstate: GameState): void {
+    // TODO:     if (gstate.started) {
+    document.getElementById('message')!.innerHTML = '';
     if (this.wsize == undefined)
       this.resize();
     const { d } = this;
     d.save();
     d.scale(devicePixelRatio, devicePixelRatio);
-    this.drawScaled(state);
+    this.drawScaled(gstate.state);
     d.restore();
+    // TODO:
+    /*
+        }
+        else {
+          document.getElementById('message')!.innerHTML = 'blah blah <a href="#">blah</a>';
+        }
+    */
   }
 
   getParts(st: State): Part[] {

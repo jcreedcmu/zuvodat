@@ -21,6 +21,14 @@ for (let i = 0; i < 10; i++) {
   table.push(String.fromCharCode(48 + i));
 }
 
+function rand_id(): string {
+  let s = '';
+  times(8, function() {
+    s += table[Math.floor(table.length * Math.random())];
+  });
+  return s;
+}
+
 export function start(k: (app: express.Express) => void) {
   const app = express();
   const server = http.createServer(app);
@@ -30,7 +38,10 @@ export function start(k: (app: express.Express) => void) {
   app.use('/b/:board/id.js', function(req, res) {
     const board_id = req.params.board;
     if (board_id.match(/^[a-z0-9]{8}$/)) {
-      res.send(`board_id = ${JSON.stringify(board_id)};`);
+      res.send(`
+board_id = ${JSON.stringify(board_id)};
+whoami = 0;
+`);
     }
     else {
       res.status(400).send('bad board id ' + board_id);
@@ -42,11 +53,7 @@ export function start(k: (app: express.Express) => void) {
       next();
       return;
     }
-    let s = '';
-    times(8, function() {
-      s += table[Math.floor(table.length * Math.random())];
-    });
-    res.redirect('/b/' + s);
+    res.redirect('/b/' + rand_id());
   });
 
   const port = process.env.PORT == null ? 5000 : parseInt(process.env.PORT);
