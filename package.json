@@ -14,7 +14,8 @@
     "node": "0.10.x"
   },
   "scripts": {
-    "start": "ts-node index.ts",
+    "dev": "ts-node dev-server.ts",
+    "start": "ts-node prod-server.ts",
     "build": "webpack --config webpack.config.js"
   },
   "devDependencies": {
