@@ -6,7 +6,7 @@ import { State, init_state, reduce_move } from './src/state';
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { Move, ClientMsg } from './src/types';
+import { Move, ClientMsg, Side } from './src/types';
 
 function times(n: number, f: () => void) {
   for (let i = 0; i < n; i++)
@@ -29,6 +29,25 @@ function rand_id(): string {
   return s;
 }
 
+type Connection = {
+  sock: WebSocket,
+  conn_id: number,
+};
+
+type Board = {
+  conns: { [k: string]: Connection },
+  conn_counter: number,
+  state: State,
+};
+
+type BoardInfo = {
+  board: Board,
+  side: Side,
+  other: string,
+};
+
+const boards: { [k: string]: BoardInfo } = {};
+
 export function start(k: (app: express.Express) => void) {
   const app = express();
   const server = http.createServer(app);
@@ -38,9 +57,14 @@ export function start(k: (app: express.Express) => void) {
   app.use('/b/:board/id.js', function(req, res) {
     const board_id = req.params.board;
     if (board_id.match(/^[a-z0-9]{8}$/)) {
+      const binfo = boards[board_id];
+      if (binfo === null) {
+        throw new Error(`no such board ${board_id}`);
+      }
       res.send(`
 board_id = ${JSON.stringify(board_id)};
-whoami = 0;
+whoami = ${JSON.stringify(binfo.side)};
+other = ${JSON.stringify(binfo.other)};
 `);
     }
     else {
@@ -53,38 +77,41 @@ whoami = 0;
       next();
       return;
     }
-    res.redirect('/b/' + rand_id());
+    const player0 = rand_id();
+    const player1 = rand_id();
+    const board: Board = {
+      conns: {},
+      conn_counter: 0,
+      state: init_state,
+    };
+    boards[player0] = { board, other: player1, side: 0 };
+    boards[player1] = { board, other: player0, side: 1 };
+    res.redirect(`/b/${player0}`);
   });
 
   const port = process.env.PORT == null ? 5000 : parseInt(process.env.PORT);
   server.listen(port)
   console.log('http server listening on %d', port)
 
-  type Connection = {
-    sock: WebSocket,
-    conn_id: number,
-  };
-  type Board = {
-    conns: { [k: string]: Connection },
-    conn_counter: number,
-    state: State,
-  };
-
-  const boards: { [k: string]: Board } = {};
-  const qu = [];
-
   app.use(express.json());
   app.post('/b/:board/move', (req, res) => {
     const msg: ClientMsg = req.body;
     const { board_id, move } = msg;
+
+    if (move === null) {
+      throw new Error('no move');
+    }
+
     if (!board_id.match(/^[a-z0-9]{8}$/)) {
       res.status(400).send('bad board id ' + board_id);
     }
-    const board = boards[board_id];
+    const binfo = boards[board_id];
 
-    if (move == null)
-      throw 'no move';
+    if (binfo === null) {
+      throw new Error(`no such board ${board_id}`);
+    }
 
+    const { board } = binfo;
     const step_res = reduce_move(board.state, move);
 
     if (step_res == null) {
@@ -122,15 +149,11 @@ whoami = 0;
         sock.close();
         return;
       }
-      let board = boards[board_id];
-      if (board == null) {
-        board = {
-          conns: {},
-          conn_counter: 0,
-          state: init_state,
-        };
-        boards[board_id] = board;
+      const binfo = boards[board_id];
+      if (binfo == null) {
+        throw new Error(`no such board ${board_id}`);
       }
+      const { board } = binfo;
       const conn_id = board.conn_counter++;
       const conn: Connection = { sock, conn_id };
       board.conns[conn.conn_id] = conn;
