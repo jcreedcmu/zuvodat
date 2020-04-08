@@ -46,7 +46,8 @@ export const init_state: State = {
 
 type Err = { err: string };
 
-export function reduce_move(state: State, move: Move | null): State | Err {
+export function reduce_move(state: State, move: Move | null, issuing_player: Player): State | Err {
+
   if (state.victory) {
     return init_state;
   }
@@ -57,6 +58,10 @@ export function reduce_move(state: State, move: Move | null): State | Err {
   if (player != state.cur_player) {
     return { err: 'not current player' };
   }
+  if (issuing_player != state.cur_player) {
+    return { err: 'issuing player is not current player' };
+  }
+
   const side = move.side;
   const ix = move.ix;
   const stones = state.stones[player][side][ix];
@@ -96,8 +101,8 @@ export function reduce_move(state: State, move: Move | null): State | Err {
   }
 }
 
-export function reduce(state: State, move: Move): State {
-  const state_or_err = reduce_move(state, move);
+export function reduce(state: State, move: Move, issuing_player: Player): State {
+  const state_or_err = reduce_move(state, move, issuing_player);
   if ('err' in state_or_err) {
     console.log(state_or_err);
     return state;

@@ -87,7 +87,7 @@ class App {
     const { view, model } = this;
     if (model.gstate.started) {
       const wpoint = { x: e.clientX, y: e.clientY };
-      const move: Move | null = view.do_hit_test(model.gstate.state, wpoint);
+      const move: Move | null = view.do_hit_test(model.gstate, wpoint);
       if (move != null) {
         this.send_move(move);
       }

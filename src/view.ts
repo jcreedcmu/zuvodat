@@ -30,7 +30,7 @@ export class View {
       const { d } = this;
       d.save();
       d.scale(devicePixelRatio, devicePixelRatio);
-      this.drawScaled(gstate.state);
+      this.drawScaled(gstate);
       d.restore();
     }
     else {
@@ -40,17 +40,19 @@ export class View {
     }
   }
 
-  getParts(st: State): Part[] {
+  getParts(gst: GameState): Part[] {
     const parts: Part[] = [];
+
+    const st = gst.state;
 
     function blit(src: Point, dst: Point, size: Point, data: PartInfo) {
       parts.push({ t: 'sprite', sprite: { src }, rect: { p: dst, sz: size }, info: data });
     }
 
-    const draw_stones = (player: Player, side: Side) => {
+    function draw_stones(player: Player, side: Side): (num: number, ix: number) => void {
       return (num: number, ix: number) => {
         // coordinates and activeness of stone counter
-        const inactive = (player != st.cur_player || num == MAX_STONES) ? 1 : 0;
+        const active_hole = st.cur_player == gst.whoami && player == st.cur_player && num != MAX_STONES;
         let px = STONE_START + ix * STONE_SPACE;
         let py = player == 0 ? TOP_ROW_Y : BOTTOM_ROW_Y;
         if (side) {
@@ -58,10 +60,10 @@ export class View {
           px = py;
           py = t;
         }
-        let data: PartInfo = { player, side, ix, action: 'add', active: !inactive };
+        let data: PartInfo = { player, side, ix, action: 'add', active: active_hole };
         blit(
           {
-            x: BOARD_SIZE + inactive * STONE_SIZE,
+            x: BOARD_SIZE + (active_hole ? 0 : 1) * STONE_SIZE,
             y: num * STONE_SIZE + (1 - player) * STONE_SIZE * (MAX_STONES + 1)
           },
           { x: px, y: py },
@@ -69,10 +71,14 @@ export class View {
           data
         );
 
-        const active = player == st.cur_player && st.stones[player][side][ix] > 0 && (ix == (side ? st.ball.y : st.ball.x));
+        const active_tri =
+          player == st.cur_player
+          && st.cur_player == gst.whoami
+          && st.stones[player][side][ix] > 0
+          && (ix == (side ? st.ball.y : st.ball.x));
         const ty = player == 0 ? 0 : 164;
         let ARROW_TYPE: 0 | 1 | 2 = 1;
-        if (active) {
+        if (active_tri) {
           ARROW_TYPE = 0;
         }
         else if (st.moves.length > 0) {
@@ -92,7 +98,7 @@ export class View {
           dst = u.vswap(dst);
           size = u.vswap(size);
         }
-        data = { player, side, ix, action: 'kick', active: active };
+        data = { player, side, ix, action: 'kick', active: active_tri };
         blit(src, dst, size, data);
       };
     }
@@ -186,12 +192,12 @@ export class View {
     }
   }
 
-  do_hit_test(st: State, p: Point): Move | null {
+  do_hit_test(gst: GameState, p: Point): Move | null {
     const hit = {
       x: (p.x - int((this.wsize.x - BOARD_SIZE * SCALE) / 2)) / SCALE,
       y: (p.y - int((this.wsize.y - BOARD_SIZE * SCALE) / 2)) / SCALE
     };
-    for (let part of this.getParts(st)) {
+    for (let part of this.getParts(gst)) {
       if (u.inrect(hit, part.rect) && part.t == 'sprite') {
         return part.info;
       }
@@ -199,20 +205,20 @@ export class View {
     return null;
   }
 
-  draw_screen(st: State) {
-    this.renderBg(st);
-    this.getParts(st).forEach(part => {
+  draw_screen(gst: GameState) {
+    this.renderBg(gst.state);
+    this.getParts(gst).forEach(part => {
       this.renderPart(part)
     });
   }
 
 
-  drawScaled(state: State): void {
+  drawScaled(gst: GameState): void {
     const { d } = this;
 
     d.save();
     d.imageSmoothingEnabled = false;
-    this.draw_screen(state);
+    this.draw_screen(gst);
     d.restore();
 
     if (DEBUG.devicePixelRatio) {

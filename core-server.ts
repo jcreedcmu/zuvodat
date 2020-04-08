@@ -65,7 +65,7 @@ function handle_move(msg: MoveClientMsg, res: express.Response) {
   }
 
   const { board } = binfo;
-  const step_res = reduce_move(board.state, move);
+  const step_res = reduce_move(board.state, move, binfo.side);
 
   if (step_res == null) {
     res.status(400).json({ err: 'step_res null' });
