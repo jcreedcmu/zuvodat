@@ -5,3 +5,13 @@ A: I did
 $ ts-node index.ts
 and went to
 http://localhost:5000
+
+=== 2020.04.12
+
+Q: Where are some historical branches/repos of note?
+A:
+https://bitbucket.org/jcreed/zuvodat/src/github-old-master Jul 2019
+https://bitbucket.org/jcreed/zuvodat/src/bitbucket-old-master/ Sep 2014
+https://bitbucket.org/jcreed/pushgame/src/master/ Aug 2014
+
+git@bitbucket.org:jcreed/pushgame.git
