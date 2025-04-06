@@ -12,7 +12,7 @@ const _TERM = TERM; // just to force typescript compiler to reload types.ts
 
 // these used to be injected by server, but I'm faking them for now
 const board_id: string = "abcd-efgh";
-const whoami: Side = 1;
+const whoami: Side = 0;
 const other: string = "other";
 
 window.onload = () => {
@@ -29,6 +29,8 @@ class App {
     const d = c.getContext('2d') as CanvasRenderingContext2D;
     this.view = new View(c, d);
     this.model = new Model(init_state, whoami, other);
+    this.model.set_started();
+    this.model.gstate.state.cur_player = 0;
   }
 
   run(): void {
