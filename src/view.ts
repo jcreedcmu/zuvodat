@@ -24,7 +24,7 @@ export class View {
 
   draw(gstate: GameState): void {
     if (gstate.started || gstate.whoami == 1) {
-      document.getElementById('message')!.innerHTML = '';
+      // document.getElementById('message')!.innerHTML = '';
       if (this.wsize == undefined)
         this.resize();
       const { d } = this;

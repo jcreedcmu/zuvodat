@@ -10,10 +10,10 @@ import { Loader } from './loader';
 
 const _TERM = TERM; // just to force typescript compiler to reload types.ts
 
-// injected by server
-declare const board_id: string;
-declare const whoami: Side;
-declare const other: string;
+// these used to be injected by server, but I'm faking them for now
+const board_id: string = "abcd-efgh";
+const whoami: Side = 1;
+const other: string = "other";
 
 window.onload = () => {
   const app = new App;
@@ -122,13 +122,6 @@ class App {
   }
 
   open_ws() {
-    const host = location.origin.replace(/^http/, 'ws') + '/' + board_id;
-    console.log('DEBUG ws host=', host);
-    const ws = new WebSocket(host);
-    ws.addEventListener('message', event => this.handle_msg(event));
-    ws.addEventListener('close', () => {
-      console.log('closing, trying to reopen');
-      setTimeout(() => this.open_ws(), 1000);
-    });
+    console.log('was going to open websocket');
   }
 }
