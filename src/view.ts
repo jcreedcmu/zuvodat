@@ -2,7 +2,7 @@ import { SCALE, DEBUG, PLAY_SIZE, BOARD_SIZE, AVATAR_SIZE, STONE_START, STONE_SI
 import { nope, int, vm, vm2, vmn, vplus, vminus, vint, vfpart } from './util';
 import { Buffer, buffer, fbuf } from './dutil';
 import * as u from './util';
-import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part, Move } from './types';
+import { Point, Rect, Color, Dict, Dir, PartInfo, Player, Side, Part, Move, players, sides } from './types';
 import {
   State, Screen,
 } from './state';
@@ -14,12 +14,14 @@ export class View {
   d: CanvasRenderingContext2D;
   wsize: Point;
   origin: Point;
-  gameImg: HTMLImageElement;
+  gameImg: HTMLImageElement | undefined;
   spriteCache: Dict<Buffer> = {};
 
   constructor(c: HTMLCanvasElement, d: CanvasRenderingContext2D) {
     this.c = c;
     this.d = d;
+    this.wsize = { x: 0, y: 0 };
+    this.origin = { x: 0, y: 0 };
   }
 
   draw(gstate: GameState): void {
@@ -104,8 +106,8 @@ export class View {
     }
 
     if (!st.victory) {
-      [0, 1].forEach((player: Player) => {
-        [0, 1].forEach((side: Side) => {
+      players.forEach(player => {
+        sides.forEach(side => {
           st.stones[player][side].forEach(draw_stones(player, side));
         });
       });
@@ -134,6 +136,7 @@ export class View {
   renderBg(st: State): void {
     const { d } = this;
     const g = this.gameImg;
+    if (g == undefined) return;
     const w = this.wsize.x;
     const h = this.wsize.y;
     d.save();
@@ -182,6 +185,7 @@ export class View {
     const { d } = this;
     switch (p.t) {
       case 'sprite':
+        if (this.gameImg == undefined) return;
         d.drawImage(this.gameImg, p.sprite.src.x, p.sprite.src.y, p.rect.sz.x, p.rect.sz.y,
           p.rect.p.x, p.rect.p.y, p.rect.sz.x, p.rect.sz.y);
         break;

@@ -52,3 +52,5 @@ export type Part = { t: 'sprite', sprite: Sprite, rect: Rect, info: PartInfo }
   | { t: 'blot', rect: Rect };
 export type Player = 0 | 1;
 export type Side = 0 | 1;
+export const players: Player[] = [0, 1];
+export const sides: Side[] = [0, 1];

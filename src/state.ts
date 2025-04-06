@@ -1,5 +1,5 @@
 import { PLAY_SIZE, MAX_STONES } from './constants';
-import { Point, Dict, Rect, Dir, Move, Player, Side } from './types';
+import { Point, Dict, Rect, Dir, Move, Player, Side, players, sides } from './types';
 import { nope, inrect, vminus, vplus } from './util';
 import * as u from './util';
 import { produce } from 'immer';
@@ -27,8 +27,8 @@ export type State = {
 
 function init_stones(): Stones {
   const rv: Stones = { 0: { 0: [], 1: [] }, 1: { 0: [], 1: [] } };
-  [0, 1].forEach((player: Player) => {
-    [0, 1].forEach((side: Side) => {
+  players.forEach(player => {
+    sides.forEach(side => {
       for (let i = 0; i < 11; i++)
         rv[player][side][i] = 0;
     });
