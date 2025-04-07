@@ -1,4 +1,4 @@
-export const SCALE = 3;
+export const SCALE = 2;
 export const BOARD_SIZE = 169;
 export const AVATAR_OFF = 151;
 export const AVATAR_SIZE = 17;
