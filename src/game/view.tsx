@@ -2,8 +2,16 @@ import * as React from 'react';
 import { Dispatch } from '../framework/action';
 import { Player, GameState } from './state';
 import { CanvasInfo, useCanvas } from '../framework/lib/use-canvas';
-import { rrelpos } from '../framework/lib/dutil';
+import { imgProm, rrelpos } from '../framework/lib/dutil';
 import { Part } from '../types';
+import { AVATAR_OFF, AVATAR_SIZE, BGCOLOR, BLOT_SIZE, BOARD_SIZE, BOTTOM_ROW_Y, SCALE, STONE_SIZE, STONE_SPACE, STONE_START, TRI_START } from './constants';
+import { int, vswap } from '../framework/lib/vutil';
+
+const images: Record<string, HTMLImageElement> = {};
+
+export async function loadAssets(): Promise<void> {
+  images['game'] = await imgProm('game.png');
+}
 
 export type GameProps = {
   viewingPlayer: Player,
@@ -26,8 +34,53 @@ function getParts(gst: GameState): Part[] {
   return [];
 }
 
-function renderBg(d: CanvasRenderingContext2D, gst: GameState): void {
+function renderBg(ci: CanvasInfo, gst: GameState): void {
+  const { d } = ci;
+  const g = images['game'];
+  const w = ci.size.x;
+  const h = ci.size.y;
+  d.save();
 
+  d.imageSmoothingEnabled = false;
+  d.fillStyle = BGCOLOR;
+  d.fillRect(0, 0, w, h);
+  d.translate(int((w - BOARD_SIZE * SCALE) / 2),
+    int((h - BOARD_SIZE * SCALE) / 2));
+  d.scale(SCALE, SCALE);
+
+  d.drawImage(g, 0, 0, BOARD_SIZE, BOARD_SIZE, 0, 0, BOARD_SIZE, BOARD_SIZE);
+  d.fillStyle = BGCOLOR;
+  d.fillRect(AVATAR_OFF, 1, AVATAR_SIZE, AVATAR_SIZE);
+  d.fillRect(1, AVATAR_OFF, AVATAR_SIZE, AVATAR_SIZE);
+
+  d.drawImage(g, BOARD_SIZE + 14, 0, STONE_SIZE, STONE_SIZE,
+    STONE_START + gst.ball.x * STONE_SPACE,
+    STONE_START + gst.ball.y * STONE_SPACE,
+    STONE_SIZE, STONE_SIZE);
+
+  // victory cleanup
+  if (gst.victory) {
+    [0, 1].forEach(player => {
+      [0, 1].forEach(side => {
+        let blot = { x: TRI_START, y: player == 0 ? 0 : BOTTOM_ROW_Y };
+        let blot_size = BLOT_SIZE;
+        if (side) {
+          blot = vswap(blot);
+          blot_size = vswap(blot_size);
+        }
+        d.fillStyle = BGCOLOR;
+        d.fillRect(blot.x, blot.y, blot_size.x, blot_size.y);
+      });
+    });
+
+    if (gst.cur_player == 0) {
+      d.drawImage(g, AVATAR_OFF, 1, AVATAR_SIZE, AVATAR_SIZE, 1, 1, AVATAR_SIZE, AVATAR_SIZE);
+    }
+    else {
+      d.drawImage(g, 1, AVATAR_OFF, AVATAR_SIZE, AVATAR_SIZE, AVATAR_OFF, AVATAR_OFF, AVATAR_SIZE, AVATAR_SIZE);
+    }
+  }
+  d.restore();
 }
 
 function renderPart(d: CanvasRenderingContext2D, part: Part): void {
@@ -43,7 +96,7 @@ function render(ci: CanvasInfo, state: GameProps): void {
   d.scale(devicePixelRatio, devicePixelRatio);
   d.imageSmoothingEnabled = false;
   const gst = state.state;
-  renderBg(d, gst);
+  renderBg(ci, gst);
   getParts(gst).forEach(part => {
     renderPart(d, part)
   });

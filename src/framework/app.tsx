@@ -9,7 +9,7 @@ import { AppState, mkState } from './state';
 import { Dispatch } from './action';
 import { Peer } from 'peerjs';
 import { init_state } from '../game/state';
-import { GameView } from '../game/view';
+import { GameView, loadAssets } from '../game/view';
 
 export type AppProps = {
   color: string,
@@ -49,7 +49,11 @@ function InitServer(props: { dispatch: Dispatch, state: AppState & { t: 'initial
       peer.on('error', err => {
         console.log('err!', err);
       });
-      dispatch({ t: 'setAppState', state: { t: 'server_waiting_for_client', effects: [], id, peer } });
+      loadAssets()
+        .then(() => {
+          dispatch({ t: 'setAppState', state: { t: 'server_waiting_for_client', effects: [], id, peer } });
+        })
+        .catch(e => { console.error(e); });
     });
   });
   return statusMessage('Initializing...');
@@ -72,7 +76,11 @@ function InitClient(props: { dispatch: Dispatch, state: AppState & { t: 'initial
           console.log('client got message', data);
           dispatch({ t: 'rxMessage', message: data });
         });
-        dispatch({ t: 'setAppState', state: { t: 'client', effects: [], id, serverId, game: init_state, peer, conn, log: [] } });
+        loadAssets()
+          .then(() => {
+            dispatch({ t: 'setAppState', state: { t: 'client', effects: [], id, serverId, game: init_state, peer, conn, log: [] } });
+          })
+          .catch(e => { console.error(e); });
       });
     });
   });
