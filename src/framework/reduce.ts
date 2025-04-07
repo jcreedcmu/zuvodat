@@ -1,6 +1,7 @@
 import { produce } from 'immer';
 import { AppState } from './state';
 import { Action } from './action';
+import { init_state } from '../game/state';
 
 export function reduce(state: AppState, action: Action): AppState {
   switch (action.t) {
@@ -27,7 +28,7 @@ export function reduce(state: AppState, action: Action): AppState {
         t: 'server',
         id: state.id,
         effects: [],
-        game: {},
+        game: init_state,
         conn: action.conn,
         peer: state.peer,
         log: [],

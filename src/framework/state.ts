@@ -1,9 +1,6 @@
 import { Effect } from "./effect";
 import { DataConnection, Peer } from "peerjs";
-
-export type GameState = {
-
-};
+import { GameState } from '../game/state';
 
 export type AppState =
   | {

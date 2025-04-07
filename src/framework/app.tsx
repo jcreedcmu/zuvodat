@@ -8,6 +8,8 @@ import { reduce } from './reduce';
 import { AppState, mkState } from './state';
 import { Dispatch } from './action';
 import { Peer } from 'peerjs';
+import { init_state } from '../game/state';
+import { GameView } from '../game/view';
 
 export type AppProps = {
   color: string,
@@ -70,7 +72,7 @@ function InitClient(props: { dispatch: Dispatch, state: AppState & { t: 'initial
           console.log('client got message', data);
           dispatch({ t: 'rxMessage', message: data });
         });
-        dispatch({ t: 'setAppState', state: { t: 'client', effects: [], id, serverId, game: {}, peer, conn, log: [] } });
+        dispatch({ t: 'setAppState', state: { t: 'client', effects: [], id, serverId, game: init_state, peer, conn, log: [] } });
       });
     });
   });
@@ -79,6 +81,7 @@ function InitClient(props: { dispatch: Dispatch, state: AppState & { t: 'initial
 
 function ServerWaiting(props: { dispatch: Dispatch, state: AppState & { t: 'server_waiting_for_client' } }): JSX.Element {
   const { state, dispatch } = props;
+  const x = state;
   const { id, peer } = state;
   const url = new URL(document.URL);
   console.log(`server id ${id}`);
@@ -117,16 +120,16 @@ export function App(props: AppProps): JSX.Element {
         return <InitServer dispatch={dispatch} state={state} />;
       }
     }
-    case 'server': return statusMessage('Server ready', <><br /><SendButton dispatch={dispatch} /><pre>{state.log.join('\n')}</pre></>);
-    case 'client': return statusMessage('Client ready', <><br /><SendButton dispatch={dispatch} /><pre>{state.log.join('\n')}</pre></>);
+    case 'server': return <GameView state={state.game} viewingPlayer={0} dispatch={dispatch} />;
+    case 'client': return <GameView state={state.game} viewingPlayer={1} dispatch={dispatch} />;
     case 'server_waiting_for_client': return <ServerWaiting dispatch={dispatch} state={state} />;
   }
 
 
   /* <button onMouseDown={(e) => { }}>Host</button><br />
-     <div className='sep' />
-     <br />
-     <button onMouseDown={(e) => { }}>Connect</button> */
+      <div className='sep' />
+      <br />
+      <button onMouseDown={(e) => { }}>Connect</button> */
 }
 
 export function init() {

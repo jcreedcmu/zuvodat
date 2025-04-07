@@ -83,3 +83,7 @@ export function vunit(v: Point): Point {
 export function vdiag(x: number): Point {
   return { x: x, y: x };
 }
+
+export function vswap(p: Point): Point {
+  return { x: p.y, y: p.x };
+}
