@@ -1,11 +1,18 @@
 import * as React from 'react';
 import { Dispatch } from '../framework/action';
-import { Player, GameState } from './state';
-import { CanvasInfo, useCanvas } from '../framework/lib/use-canvas';
 import { imgProm, rrelpos } from '../framework/lib/dutil';
-import { Part } from '../types';
-import { AVATAR_OFF, AVATAR_SIZE, BGCOLOR, BLOT_SIZE, BOARD_SIZE, BOTTOM_ROW_Y, SCALE, STONE_SIZE, STONE_SPACE, STONE_START, TRI_START } from './constants';
+import { Point, Rect } from '../framework/lib/types';
+import { CanvasInfo, useCanvas } from '../framework/lib/use-canvas';
 import { int, vswap } from '../framework/lib/vutil';
+import { AVATAR_OFF, AVATAR_SIZE, BGCOLOR, BLOT_SIZE, BOARD_SIZE, BOTTOM_ROW_Y, MAX_STONES, SCALE, STONE_SIZE, STONE_SPACE, STONE_START, TOP_ROW_Y, TRI_SIZE_X, TRI_SIZE_Y, TRI_START } from './constants';
+import { GameState, Move, Player, players, Side, sides } from './state';
+
+export type Sprite = { src: Point }; // position on sprite sheet
+type Part =
+  | { t: 'sprite', sprite: Sprite, rect: Rect, info: PartInfo }
+  | { t: 'blot', rect: Rect }
+  ;
+type PartInfo = Move;
 
 const images: Record<string, HTMLImageElement> = {};
 
@@ -30,8 +37,101 @@ function statusMessage(message: string, more?: JSX.Element): JSX.Element {
   </>
 }
 
-function getParts(gst: GameState): Part[] {
-  return [];
+function getParts(gst: GameState, viewingPlayer: Player): Part[] {
+  const parts: Part[] = [];
+
+  function blit(src: Point, dst: Point, size: Point, data: PartInfo) {
+    parts.push({ t: 'sprite', sprite: { src }, rect: { p: dst, sz: size }, info: data });
+  }
+
+  function draw_stones(player: Player, side: Side): (num: number, ix: number) => void {
+    return (num: number, ix: number) => {
+      // coordinates and activeness of stone counter
+      const active_hole = gst.cur_player == viewingPlayer && player == gst.cur_player && num != MAX_STONES;
+      let px = STONE_START + ix * STONE_SPACE;
+      let py = player == 0 ? TOP_ROW_Y : BOTTOM_ROW_Y;
+      if (side) {
+        const t = px;
+        px = py;
+        py = t;
+      }
+      let data: PartInfo = { player, side, ix, action: 'add', active: active_hole };
+      blit(
+        {
+          x: BOARD_SIZE + (active_hole ? 0 : 1) * STONE_SIZE,
+          y: num * STONE_SIZE + (1 - player) * STONE_SIZE * (MAX_STONES + 1)
+        },
+        { x: px, y: py },
+        { x: STONE_SIZE, y: STONE_SIZE },
+        data
+      );
+
+      const active_tri =
+        player == gst.cur_player
+        && gst.cur_player == viewingPlayer
+        && gst.stones[player][side][ix] > 0
+        && (ix == (side ? gst.ball.y : gst.ball.x));
+      const ty = player == 0 ? 0 : 164;
+      let ARROW_TYPE: 0 | 1 | 2 = 1;
+      if (active_tri) {
+        ARROW_TYPE = 0;
+      }
+      else if (gst.moves.length > 0) {
+        const last_move = gst.moves[gst.moves.length - 1];
+        if (last_move.action == "kick"
+          && last_move.ix == ix
+          && last_move.side == side
+          && last_move.player == player) {
+          ARROW_TYPE = 2;
+        }
+      }
+      let src = { x: TRI_START + STONE_SPACE * ARROW_TYPE, y: ty };
+      let dst = { x: TRI_START + STONE_SPACE * ix, y: ty };
+      let size = { x: TRI_SIZE_X, y: TRI_SIZE_Y };
+      if (side) {
+        src = vswap(src);
+        dst = vswap(dst);
+        size = vswap(size);
+      }
+      data = { player, side, ix, action: 'kick', active: active_tri };
+      blit(src, dst, size, data);
+    };
+  }
+
+  if (!gst.victory) {
+    players.forEach(player => {
+      sides.forEach(side => {
+        gst.stones[player][side].forEach(draw_stones(player, side));
+      });
+    });
+
+    if (gst.moves.length > 0) {
+      const last_move = gst.moves.at(-1)!;
+
+      if (last_move.action == 'add') {
+        let blot = {
+          x: TRI_START + last_move.ix * STONE_SPACE,
+          y: last_move.player == 0 ? TRI_SIZE_Y + 2 : BOTTOM_ROW_Y - 1
+        };
+        let blot_size = { x: STONE_SIZE + 2, y: STONE_SIZE + 2 };
+        if (last_move.side) {
+          blot = vswap(blot);
+          blot_size = vswap(blot_size);
+        }
+        parts.push({ t: 'blot', rect: { p: blot, sz: blot_size } });
+      }
+    }
+  }
+  return parts;
+}
+
+function doTransform(ci: CanvasInfo): void {
+  const { d } = ci;
+  const w = ci.size.x;
+  const h = ci.size.y;
+  d.translate(int((w - BOARD_SIZE * SCALE) / 2),
+    int((h - BOARD_SIZE * SCALE) / 2));
+  d.scale(SCALE, SCALE);
 }
 
 function renderBg(ci: CanvasInfo, gst: GameState): void {
@@ -44,9 +144,7 @@ function renderBg(ci: CanvasInfo, gst: GameState): void {
   d.imageSmoothingEnabled = false;
   d.fillStyle = BGCOLOR;
   d.fillRect(0, 0, w, h);
-  d.translate(int((w - BOARD_SIZE * SCALE) / 2),
-    int((h - BOARD_SIZE * SCALE) / 2));
-  d.scale(SCALE, SCALE);
+  doTransform(ci);
 
   d.drawImage(g, 0, 0, BOARD_SIZE, BOARD_SIZE, 0, 0, BOARD_SIZE, BOARD_SIZE);
   d.fillStyle = BGCOLOR;
@@ -83,11 +181,39 @@ function renderBg(ci: CanvasInfo, gst: GameState): void {
   d.restore();
 }
 
-function renderPart(d: CanvasRenderingContext2D, part: Part): void {
-
+function renderPart(ci: CanvasInfo, part: Part): void {
+  const { d } = ci;
+  switch (part.t) {
+    case 'sprite':
+      d.drawImage(images['game'], part.sprite.src.x, part.sprite.src.y,
+        part.rect.sz.x, part.rect.sz.y,
+        part.rect.p.x, part.rect.p.y,
+        part.rect.sz.x, part.rect.sz.y);
+      break;
+    case 'blot':
+      d.strokeStyle = 'rgba(255,255,128,0.7)';
+      d.strokeRect(
+        part.rect.p.x - 0.5, part.rect.p.y - 0.5,
+        part.rect.sz.x + 1, part.rect.sz.y + 1);
+      break;
+  }
 }
 
-function drawScreen(d: CanvasRenderingContext2D, gst: GameState): void {
+function drawScreen(ci: CanvasInfo, state: GameProps): void {
+  const gst = state.state;
+  const { d } = ci;
+
+  renderBg(ci, gst);
+  const parts = getParts(gst, state.viewingPlayer);
+
+  const w = ci.size.x;
+  const h = ci.size.y;
+  d.save();
+  doTransform(ci);
+  parts.forEach(part => {
+    renderPart(ci, part);
+  });
+  d.restore();
 }
 
 function render(ci: CanvasInfo, state: GameProps): void {
@@ -95,11 +221,8 @@ function render(ci: CanvasInfo, state: GameProps): void {
   d.save();
   d.scale(devicePixelRatio, devicePixelRatio);
   d.imageSmoothingEnabled = false;
-  const gst = state.state;
-  renderBg(ci, gst);
-  getParts(gst).forEach(part => {
-    renderPart(d, part)
-  });
+
+  drawScreen(ci, state);
   d.restore();
 }
 
