@@ -10,7 +10,7 @@ async function go () {
 	 minify: false,
 	 sourcemap: true,
 	 bundle: true,
-	 outfile: './public/js/bundle.js',
+	 outfile: './public/bundle.js',
 	 logLevel: 'info',
   })
 
