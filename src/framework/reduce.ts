@@ -78,6 +78,7 @@ export function reduce(state: AppState, action: Action): AppState {
           s.viewData = action.vd;
         });
       }
+      else return state;
     }
   }
 }

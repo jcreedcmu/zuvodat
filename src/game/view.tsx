@@ -38,7 +38,7 @@ export function resizeView(c: HTMLCanvasElement): ViewData {
 
   const wsize = vm({ x: c.width / ratio, y: c.height / ratio }, w => int(w));
   const origin: Point = { x: 0, y: 0 };
-
+  console.log(wsize);
   return { origin, wsize };
 }
 
@@ -171,6 +171,7 @@ function renderBg(ci: CanvasInfo, gst: GameState): void {
 
   d.imageSmoothingEnabled = false;
   d.fillStyle = BGCOLOR;
+
   d.fillRect(0, 0, w, h);
   doTransform(ci);
 
@@ -250,7 +251,7 @@ function render(ci: CanvasInfo, state: GameProps): void {
   d.scale(devicePixelRatio, devicePixelRatio);
   d.imageSmoothingEnabled = false;
 
-  drawScreen(ci, state);
+  drawScreen({ c: ci.c, d: ci.d, size: state.viewData.wsize }, state);
   d.restore();
 }
 
@@ -274,14 +275,17 @@ export function do_hit_test(viewData: ViewData, state: GameState, p: Point, view
 
 export function GameView(props: GameProps): JSX.Element {
   const { dispatch } = props;
-  const [cref, mc] = useCanvas(props, render, [props], onLoad);
+  const [cref, mc] = useCanvas(props, render, [props, props.viewData], ci => {
+    dispatch({ t: 'resize', vd: resizeView(ci.c) });
+  });
   React.useEffect(() => {
     window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   });
   function onMouseDown(e: React.MouseEvent): void {
     dispatch({ t: 'mouseDown', p_in_canvas: rrelpos(e) });
   }
-  return <canvas onMouseDown={onMouseDown} style={{ top: 0, left: 0, position: 'absolute', width: '100%', height: '100%' }} ref={cref} />;
+  return <canvas onMouseDown={onMouseDown} style={{ top: 0, left: 0, position: 'absolute' }} ref={cref} />;
 
   function handleResize(e: UIEvent) {
     const vd = resizeView(mc.current!.c);

@@ -10,6 +10,8 @@ import { Peer } from 'peerjs';
 import { init_state } from '../game/state';
 import { GameView, loadAssets, ViewData } from '../game/view';
 
+const PeerJsDebug = 0;
+
 export type AppProps = {
   color: string,
 };
@@ -30,7 +32,7 @@ function InitServer(props: { dispatch: Dispatch, state: AppState & { t: 'initial
   const { id } = state;
 
   React.useEffect(() => {
-    const options = { debug: 3 };
+    const options = { debug: PeerJsDebug };
     const peer = new Peer(id, options);
     peer.on('open', () => {
       console.log(`open! server peer id = ${peer.id}`);
@@ -62,7 +64,7 @@ function InitClient(props: { dispatch: Dispatch, state: AppState & { t: 'initial
   const { state, dispatch, serverId } = props;
   const { id } = state;
   React.useEffect(() => {
-    const options = { debug: 3 };
+    const options = { debug: PeerJsDebug };
     console.log(`client id ${id}`);
     console.log(`client connecting to ${serverId}`);
     const peer = new Peer(id, options);

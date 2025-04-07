@@ -142,6 +142,7 @@ export class View {
     d.save();
     d.imageSmoothingEnabled = false;
     d.fillStyle = BGCOLOR;
+
     d.fillRect(0, 0, w, h);
     d.translate(int((w - BOARD_SIZE * SCALE) / 2),
       int((h - BOARD_SIZE * SCALE) / 2));
