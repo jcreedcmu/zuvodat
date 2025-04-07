@@ -255,10 +255,6 @@ function render(ci: CanvasInfo, state: GameProps): void {
   d.restore();
 }
 
-function onLoad(ci: CanvasInfo): void {
-
-}
-
 export function do_hit_test(viewData: ViewData, state: GameState, p: Point, viewingPlayer: Player): Move | null {
   console.log(viewData.wsize);
   const hit = {
