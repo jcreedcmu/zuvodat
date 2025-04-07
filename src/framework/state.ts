@@ -1,6 +1,7 @@
 import { Effect } from "./effect";
 import { DataConnection, Peer } from "peerjs";
 import { GameState } from '../game/state';
+import { ViewData } from "../game/view";
 
 export type AppState =
   | {
@@ -20,6 +21,7 @@ export type AppState =
     peer: Peer,
     conn: DataConnection,
     game: GameState,
+    viewData: ViewData,
     effects: Effect[],
     log: string[],
   }
@@ -30,6 +32,7 @@ export type AppState =
     peer: Peer,
     conn: DataConnection,
     game: GameState,
+    viewData: ViewData,
     effects: Effect[],
     log: string[],
   }

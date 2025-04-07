@@ -3,9 +3,10 @@ import { Dispatch } from '../framework/action';
 import { imgProm, rrelpos } from '../framework/lib/dutil';
 import { Point, Rect } from '../framework/lib/types';
 import { CanvasInfo, useCanvas } from '../framework/lib/use-canvas';
-import { int, vswap } from '../framework/lib/vutil';
+import { int, vm, vm2, vswap } from '../framework/lib/vutil';
 import { AVATAR_OFF, AVATAR_SIZE, BGCOLOR, BLOT_SIZE, BOARD_SIZE, BOTTOM_ROW_Y, MAX_STONES, SCALE, STONE_SIZE, STONE_SPACE, STONE_START, TOP_ROW_Y, TRI_SIZE_X, TRI_SIZE_Y, TRI_START } from './constants';
 import { GameState, Move, Player, players, Side, sides } from './state';
+import { pointInRect } from '../framework/lib/util';
 
 export type Sprite = { src: Point }; // position on sprite sheet
 type Part =
@@ -20,7 +21,34 @@ export async function loadAssets(): Promise<void> {
   images['game'] = await imgProm('game.png');
 }
 
+export function resizeView(c: HTMLCanvasElement): ViewData {
+  const ratio = devicePixelRatio;
+
+  c.width = innerWidth;
+  c.height = innerHeight;
+
+  const ow = innerWidth;
+  const oh = innerHeight;
+
+  c.width = ow * ratio;
+  c.height = oh * ratio;
+
+  c.style.width = ow + 'px';
+  c.style.height = oh + 'px';
+
+  const wsize = vm({ x: c.width / ratio, y: c.height / ratio }, w => int(w));
+  const origin: Point = { x: 0, y: 0 };
+
+  return { origin, wsize };
+}
+
+export type ViewData = {
+  wsize: Point, // this is the overall window size
+  origin: Point, // this is the origin of the play area in pixels, as an offset from the browser window
+};
+
 export type GameProps = {
+  viewData: ViewData,
   viewingPlayer: Player,
   state: GameState,
   dispatch: Dispatch,
@@ -230,12 +258,33 @@ function onLoad(ci: CanvasInfo): void {
 
 }
 
+export function do_hit_test(viewData: ViewData, state: GameState, p: Point, viewingPlayer: Player): Move | null {
+  console.log(viewData.wsize);
+  const hit = {
+    x: (p.x - int((viewData.wsize.x - BOARD_SIZE * SCALE) / 2)) / SCALE,
+    y: (p.y - int((viewData.wsize.y - BOARD_SIZE * SCALE) / 2)) / SCALE
+  };
+  for (let part of getParts(state, viewingPlayer)) {
+    if (pointInRect(hit, part.rect) && part.t == 'sprite') {
+      return part.info;
+    }
+  }
+  return null;
+}
+
 export function GameView(props: GameProps): JSX.Element {
   const { dispatch } = props;
   const [cref, mc] = useCanvas(props, render, [props], onLoad);
+  React.useEffect(() => {
+    window.addEventListener('resize', handleResize);
+  });
   function onMouseDown(e: React.MouseEvent): void {
     dispatch({ t: 'mouseDown', p_in_canvas: rrelpos(e) });
   }
   return <canvas onMouseDown={onMouseDown} style={{ top: 0, left: 0, position: 'absolute', width: '100%', height: '100%' }} ref={cref} />;
 
+  function handleResize(e: UIEvent) {
+    const vd = resizeView(mc.current!.c);
+    dispatch({ t: 'resize', vd });
+  }
 }

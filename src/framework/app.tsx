@@ -1,15 +1,14 @@
 import * as React from 'react';
 import { createRoot } from 'react-dom/client';
 import { doEffect } from './effect';
-import { ExampleCanvas } from './example-canvas';
 import { extractEffects } from './lib/extract-effects';
 import { useEffectfulReducer } from './lib/use-effectful-reducer';
-import { reduce } from './reduce';
+import { nullVd, reduce } from './reduce';
 import { AppState, mkState } from './state';
 import { Dispatch } from './action';
 import { Peer } from 'peerjs';
 import { init_state } from '../game/state';
-import { GameView, loadAssets } from '../game/view';
+import { GameView, loadAssets, ViewData } from '../game/view';
 
 export type AppProps = {
   color: string,
@@ -78,7 +77,19 @@ function InitClient(props: { dispatch: Dispatch, state: AppState & { t: 'initial
         });
         loadAssets()
           .then(() => {
-            dispatch({ t: 'setAppState', state: { t: 'client', effects: [], id, serverId, game: init_state, peer, conn, log: [] } });
+            dispatch({
+              t: 'setAppState', state: {
+                t: 'client',
+                effects: [],
+                id,
+                serverId,
+                game: init_state,
+                viewData: nullVd,
+                peer,
+                conn,
+                log: [],
+              }
+            });
           })
           .catch(e => { console.error(e); });
       });
@@ -107,7 +118,6 @@ function ServerWaiting(props: { dispatch: Dispatch, state: AppState & { t: 'serv
 export function App(props: AppProps): JSX.Element {
   const [state, dispatch] = useEffectfulReducer(mkState(), extractEffects(reduce), doEffect);
   const { id } = state;
-
   switch (state.t) {
     case 'initializing': {
       const params = new URLSearchParams(window.location.search);
@@ -119,8 +129,8 @@ export function App(props: AppProps): JSX.Element {
         return <InitServer dispatch={dispatch} state={state} />;
       }
     }
-    case 'server': return <GameView state={state.game} viewingPlayer={0} dispatch={dispatch} />;
-    case 'client': return <GameView state={state.game} viewingPlayer={1} dispatch={dispatch} />;
+    case 'server': return <GameView state={state.game} viewingPlayer={0} dispatch={dispatch} viewData={state.viewData} />;
+    case 'client': return <GameView state={state.game} viewingPlayer={1} dispatch={dispatch} viewData={state.viewData} />;
     case 'server_waiting_for_client': return <ServerWaiting dispatch={dispatch} state={state} />;
   }
 }

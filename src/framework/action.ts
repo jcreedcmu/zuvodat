@@ -1,3 +1,4 @@
+import { ViewData } from "../game/view";
 import { Effect } from "./effect";
 import { Point } from "./lib/types";
 import { AppState } from "./state";
@@ -10,6 +11,7 @@ export type Action =
   | { t: 'setAppState', state: AppState }
   | { t: 'serverGetConn', conn: DataConnection }
   | { t: 'rxMessage', message: any }
+  | { t: 'resize', vd: ViewData }
   ;
 
 export type Dispatch = (action: Action) => void;
