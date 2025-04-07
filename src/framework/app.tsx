@@ -104,15 +104,6 @@ function ServerWaiting(props: { dispatch: Dispatch, state: AppState & { t: 'serv
   </>;
 }
 
-function SendButton(props: { dispatch: Dispatch }): JSX.Element {
-  function onClick() {
-    props.dispatch({ t: 'effect', effect: { t: 'send', message: 'ping' } });
-  }
-  return <button onClick={onClick}>
-    Ping
-  </button>;
-}
-
 export function App(props: AppProps): JSX.Element {
   const [state, dispatch] = useEffectfulReducer(mkState(), extractEffects(reduce), doEffect);
   const { id } = state;
@@ -132,12 +123,6 @@ export function App(props: AppProps): JSX.Element {
     case 'client': return <GameView state={state.game} viewingPlayer={1} dispatch={dispatch} />;
     case 'server_waiting_for_client': return <ServerWaiting dispatch={dispatch} state={state} />;
   }
-
-
-  /* <button onMouseDown={(e) => { }}>Host</button><br />
-      <div className='sep' />
-      <br />
-      <button onMouseDown={(e) => { }}>Connect</button> */
 }
 
 export function init() {
