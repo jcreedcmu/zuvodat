@@ -157,8 +157,8 @@ function doTransform(ci: CanvasInfo): void {
   const { d } = ci;
   const w = ci.size.x;
   const h = ci.size.y;
-  d.translate(int((w - BOARD_SIZE * SCALE) / 2),
-    int((h - BOARD_SIZE * SCALE) / 2));
+  d.translate(int((w - BOARD_SIZE * SCALE * devicePixelRatio) / (2 * devicePixelRatio)),
+    int((h - BOARD_SIZE * SCALE * devicePixelRatio) / (2 * devicePixelRatio)));
   d.scale(SCALE, SCALE);
 }
 
