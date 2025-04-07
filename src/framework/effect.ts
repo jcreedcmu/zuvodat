@@ -2,7 +2,8 @@ import { Dispatch } from "./action";
 import { AppState } from "./state";
 
 export type Effect =
-  | { t: 'send', message: any }
+  | { t: 'send', message: any } // XXX deprecated
+  | { t: 'sendUpdate' }
   ;
 
 export function doEffect(state: AppState, dispatch: Dispatch, effect: Effect): void {
@@ -13,6 +14,13 @@ export function doEffect(state: AppState, dispatch: Dispatch, effect: Effect): v
         return;
       }
       state.conn.send(effect.message);
+    } break;
+    case 'sendUpdate': {
+      if (!(state.t == 'server' || state.t == 'client')) {
+        console.error(`invariant violation: effect sendUpdate`);
+        return;
+      }
+      state.conn.send(state.game);
     } break;
   }
 }

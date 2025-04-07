@@ -2,6 +2,7 @@ import { produce } from 'immer';
 import { AppState } from './state';
 import { Action } from './action';
 import { init_state } from '../game/state';
+import { reduce as reduceAction } from '../game/reduce-action';
 
 export function reduce(state: AppState, action: Action): AppState {
   switch (action.t) {
@@ -9,7 +10,24 @@ export function reduce(state: AppState, action: Action): AppState {
       return state;
     }
     case 'mouseDown': {
-      return state;
+      if (state.t == 'server') {
+        if (state.game.cur_player == 0) {
+          const newGameState = reduceAction(state.game, action);
+          return produce(state, s => { s.game = newGameState; s.effects.push({ t: 'sendUpdate' }); });
+        }
+        else return state;
+      }
+      else if (state.t == 'client') {
+        if (state.game.cur_player == 1) {
+          const newGameState = reduceAction(state.game, action);
+          return produce(state, s => { s.game = newGameState; s.effects.push({ t: 'sendUpdate' }); });
+        }
+        else return state;
+      }
+      else {
+        console.error(`Invariant violation: action mousedown`);
+        return state;
+      }
     }
     case 'effect': {
       return produce(state, s => {
@@ -40,7 +58,7 @@ export function reduce(state: AppState, action: Action): AppState {
         return state;
       }
       return produce(state, s => {
-        s.log.push(JSON.stringify(action.message))
+        s.game = action.message; // assumes message is new game state
       });
     }
   }
