@@ -257,9 +257,10 @@ function render(ci: CanvasInfo, state: GameProps): void {
 
 export function do_hit_test(viewData: ViewData, state: GameState, p: Point, viewingPlayer: Player): Move | null {
   console.log(viewData.wsize);
+  const SC = SCALE * devicePixelRatio;
   const hit = {
-    x: (p.x - int((viewData.wsize.x - BOARD_SIZE * SCALE) / 2)) / SCALE,
-    y: (p.y - int((viewData.wsize.y - BOARD_SIZE * SCALE) / 2)) / SCALE
+    x: (p.x - int((viewData.wsize.x - BOARD_SIZE * SC) / 2)) / SC,
+    y: (p.y - int((viewData.wsize.y - BOARD_SIZE * SC) / 2)) / SC
   };
   for (let part of getParts(state, viewingPlayer)) {
     if (pointInRect(hit, part.rect) && part.t == 'sprite') {
